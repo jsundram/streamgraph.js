@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+	<meta charset="utf-8">	
+	<link rel="stylesheet" type="text/css" href="/static/css/style.css">
+	<link type="text/css" href="/static/css/ui-darkness/jquery-ui-1.8rc3.custom.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="/static/css/fg.menu.css">
+	
+	<script type="text/javascript" src="/static/js/jquery-latest.js"></script>
+	<script type="text/javascript" src="/static/js/jquery-ui-1.8rc3.custom.min.js"></script>
+	<script type="text/javascript" src="/static/js/jquery.jplayer.js"></script>
+	<script type="text/javascript" src="/static/js/fg.menu.js"></script>
+	<script type="text/javascript" src="/static/js/processing-0.6.js"></script>
+	<script type="text/javascript" src="/static/js/animator.js"></script>
+    <script type="text/javascript" src="/static/js/resizer.js"></script>
+    <script type="text/javascript" src="/static/js/analysis.js"></script>
+    <script type="text/javascript" src="/static/js/rect.js"></script>
+    <script type="text/javascript" src="/static/js/streamgraph.js"></script>
+
+	<title>The Visualizer</title>
+  </head>
+	
+  <body>
+	
+	<div id="header">
+		<form action="" class="search_box">
+			<div class="search">
+				<input type="text" value="" id="artist" class="box">
+				<button class="btn" title="Search">Search</button>
+			</div>
+		</form>
+		
+		<div tabindex="0" class="fg-button fg-button-icon-right ui-widget ui-state-default ui-corner-all" id="flat">
+			<span class="ui-icon ui-icon-triangle-1-s"></span>
+			<div id="texty">Sketch</div>
+		</div>
+		
+		<div id="sketches" class="hidden">
+			<ul>
+                <li><a href="#">bpm explorer</a></li>
+                <li><a href="#">chernoff</a></li>
+                <li><a href="#">diagnostic</a></li>
+                <li><a href="#">droplets</a></li>
+                <li><a href="#">equaline</a></li>
+                <li><a href="#">musicbox</a></li>
+                <li><a href="#">shitty</a></li>
+                <li><a href="#">streamgraph</a></li>
+			</ul>
+		</div>
+		
+		<img id="loader_image" src="/static/images/ajax-loader.gif" width="16" height="16" alt="Ajax Loader" style="">
+	</div> <!-- end header -->
+	
+	<script type="text/javascript">
+		$(document).ready(function(){
+			document.getElementById("artist").focus(); 
+			window.timestamp = 0;
+			$('#flat').menu({ 
+						content: $('#flat').next().html(), // grab content from this page
+						showSpeed: 400 
+					});
+			    	$('.fg-button').hover(
+			    		function(){ $(this).removeClass('ui-state-default').addClass('ui-state-focus'); },
+			    		function(){ $(this).removeClass('ui-state-focus').addClass('ui-state-default'); }
+			    	);
+			
+			setup_jplayer();
+			setup_processing('streamgraph');
+			$("#loader_image").hide()
+		    disable_jplayer();
+		});
+	</script>
+	
+	<script type="text/javascript">
+		$("form").submit(function() {
+			var artist_name = $("input#artist").val();
+			$.getJSON("/get_track_info", {artist : artist_name}, injectTrack);
+			$("#loader_image").show()
+			return false;
+		});
+	</script>
+	
+	<div id="middle">
+		<canvas id="canvas"></canvas>
+    </div> <!-- end body -->
+	
+	<div id="footer">
+		<div id="now_playing">No track</div>
+		<div id="attribution">
+			<script type="text/javascript">
+				document.write("<a href=" + "mail" + "to:" + 'tyler' + "@" + 'echonest.com'+ ">" + 'Tyler Williams & Jason Sundram' + "<\/a>");
+	    	</script>
+		</div>
+		<div id="jquery_jplayer"></div>
+		<div id="player_container">
+			<ul id="icons" class="ui-widget ui-helper-clearfix">
+				<li id="play" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-play"></span></li>
+				<li id="pause" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-pause"></span></li>
+				<li id="stop" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-stop"></span></li>
+			</ul>
+			
+			<div id="bars_holder">
+				<div id="sliderPlayback"></div>
+				<div id="loaderBar"></div>
+			</div>
+		</div> <!-- end player_container -->
+		
+
+	</div> <!-- end footer -->
+	
+  </body>
+</html>
