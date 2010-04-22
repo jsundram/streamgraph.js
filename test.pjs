@@ -1,10 +1,19 @@
+
+/* GLOBALS :( */
+var SETTINGS = new Settings();
+var SETTINGS_RECT = null;
+
+var LastFmColors = null;
+
 void setup()
 {
   size(window.outerWidth, window.outerHeight); 
   
-  stroke(255);
-  strokeWeight(10);
-  smooth();
+  background(0);
+  frameRate(10);
+  smooth(); 
+  
+  LastFmColors = loadImage('layers.jpg', 'jpg', function(){console.log('image loaded', LastFmColors.width, LastFmColors.height);});
 }
 
 var curr_height;
@@ -22,7 +31,7 @@ void draw()
         
         try
         {
-            size(curr_width, curr_height);          
+            size(curr_width, curr_height);
         } 
         catch(e)
         {
@@ -30,23 +39,55 @@ void draw()
         }
     }
     
+    // Only need to draw if size has changed.
     if (resized)
     {
         background(0);
-    }
         
+        var settings_top = height - 20; 
+        SETTINGS_RECT = new Rect(0, settings_top, width, 20);
+        drawSettings(SETTINGS_RECT);
+    }
+    
     resized = false;
 }
 
 
-// testing
-void mouseClicked()
+void drawSettings(r)
 {
-  fill(255);
-  point(mouseX, mouseY);
-  rect(mouseX-20, mouseY-6, 4, 4);
-  textFont("Arial", 30);
-  text("(" + mouseX + ", " + mouseY + ")", mouseX, mouseY);
-  console.log(mouseX, mouseY);
-
+    var spacing = 10; // space between setting groups
+    var text_left = r.left;
+    var text_width = (r.width - spacing * (SETTINGS.num_types() - 1)) / SETTINGS.num_options();
+    var text_height = r.height * .75;
+    var text_bottom = r.top + th;
+    
+    pushStyle();
+    textFont("Arial", th);
+    
+    for (var i = 0; i < SETTINGS.num_types(); i++)
+    {
+        setting = SETTINGS.settings[i]; // settings. There, I said it again.
+        var num_values = setting.values.length;
+        
+        // Draw rect for this setting.
+        pushStyle();
+        noFill();
+        stroke(128);
+        strokeWeight(1);
+        rect(text_left, r.top, text_width * num_values, r.height);
+        popStyle();
+        
+        setting.rects = []; // Tack on rects for hit-testing.
+        for (var j = 0; j < num_values; j++)
+        {
+            var value = setting.values[i];
+            var text_color = (value == settings.current) ? 255 : 128;
+            fill(text_color);
+            text(value, text_left, text_bottom, text_width, th);
+            setting.rects[j] = new Rect(text_left, r.top, text_width, r.height);
+            text_left += text_width;
+        }
+        text_left += spacing;
+    }
+    popStyle();
 }
