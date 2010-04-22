@@ -258,7 +258,19 @@ function RandomColorPicker(layers)
         var h = lerp(0.6, 0.65, Math.random());
         var s = lerp(0.2, 0.25, Math.random());
         var b = lerp(0.4, 0.95, Math.random());
-        layers[i].hsb = [h, s, b]; // let the user worry about HSB -> RGB conversion.
+        layers[i].hsb = [h, s, b]; // Let the sketch worry about HSB -> RGB conversion.
+    }
+}
+
+// Like RandomColorPicker, but with more variation betwen colors
+function NiceRandomColorPicker(layers)
+{
+    for (var i = 0; i < layers.length; i++)
+    {
+        var h = lerp(0.2, 0.65, Math.random()); // Hue changes make a big difference.
+        var s = lerp(0.2, 0.25, Math.random());
+        var b = lerp(0.4, 0.95, Math.random());
+        layers[i].hsb = [h, s, b]; // Let the sketch worry about HSB -> RGB conversion.
     }
 }
 
