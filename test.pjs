@@ -3,6 +3,11 @@
 var SETTINGS = new Settings();
 var SETTINGS_RECT = null;
 
+// Keep track of screen resizing.
+var curr_height;
+var curr_width;
+var REPAINT = false;
+
 var LastFmColors = null;
 
 void setup()
@@ -16,10 +21,33 @@ void setup()
   LastFmColors = loadImage('layers.jpg', 'jpg', function(){console.log('image loaded', LastFmColors.width, LastFmColors.height);});
 }
 
-var curr_height;
-var curr_width;
-var resized = false;
 
+void mouseClicked()
+{
+    console.log('Click', mouseX, mouseY);
+    
+    // Did we click the settings?
+    if (SETTINGS_RECT === null ||  !SETTINGS_RECT.contains(mouseX, mouseY))
+        return;
+    
+    // See which setting got the click.
+    dance:
+    for (var i = 0; i < SETTINGS.num_types(); i++)
+    {
+        var setting = SETTINGS.settings[i]; // settings. There, I said it again.
+        
+        for (var j = 0; j < setting.values.length; j++)
+        {
+            if (setting.rects[j].contains(mouseX, mouseY)
+            {
+                console.log("Changed settings", setting.current, " to ", setting.values[i]);
+                setting.current = setting.values[i];
+                REPAINT = true;
+                break dance; // haha.
+            }
+        }
+    }
+}
 void draw()
 {
     if (curr_width != window.outerWidth || curr_height != window.outerHeight)
@@ -27,7 +55,7 @@ void draw()
         curr_width = window.outerWidth;
         curr_height = window.outerHeight;
         
-        resized = true;
+        REPAINT = true;
         
         try
         {
@@ -39,8 +67,7 @@ void draw()
         }
     }
     
-    // Only need to draw if size has changed.
-    if (resized)
+    if (REPAINT)
     {
         background(0);
         
@@ -49,7 +76,7 @@ void draw()
         drawSettings(SETTINGS_RECT);
     }
     
-    resized = false;
+    REPAINT = false;
 }
 
 
@@ -66,7 +93,7 @@ void drawSettings(r)
     
     for (var i = 0; i < SETTINGS.num_types(); i++)
     {
-        setting = SETTINGS.settings[i]; // settings. There, I said it again.
+        var setting = SETTINGS.settings[i]; // settings. There, I said it again.
         var num_values = setting.values.length;
         
         // Draw rect for this setting.
@@ -80,7 +107,7 @@ void drawSettings(r)
         setting.rects = []; // Tack on rects for hit-testing.
         for (var j = 0; j < num_values; j++)
         {
-            var value = setting.values[i];
+            var value = setting.values[j];
             var text_color = (value == settings.current) ? 255 : 128;
             fill(text_color);
             text(value, text_left, text_bottom, text_width, th);
