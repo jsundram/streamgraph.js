@@ -1,0 +1,52 @@
+void setup()
+{
+  size(window.outerWidth, window.outerHeight); 
+  
+  stroke(255);
+  strokeWeight(10);
+  smooth();
+}
+
+var curr_height;
+var curr_width;
+var resized = false;
+
+void draw()
+{
+    if (curr_width != window.outerWidth || curr_height != window.outerHeight)
+    {
+        curr_width = window.outerWidth;
+        curr_height = window.outerHeight;
+        
+        resized = true;
+        
+        try
+        {
+            size(curr_width, curr_height);          
+        } 
+        catch(e)
+        {
+            console.log(e); 
+        }
+    }
+    
+    if (resized)
+    {
+        background(0);
+    }
+        
+    resized = false;
+}
+
+
+// testing
+void mouseClicked()
+{
+  fill(255);
+  point(mouseX, mouseY);
+  rect(mouseX-20, mouseY-6, 4, 4);
+  textFont("Arial", 30);
+  text("(" + mouseX + ", " + mouseY + ")", mouseX, mouseY);
+  console.log(mouseX, mouseY);
+
+}
