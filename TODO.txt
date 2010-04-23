@@ -1,6 +1,17 @@
+get standalone page working.
+1) Make page a huge canvas, because CSS layout sucks. (DONE)
+2) Each example will just be a javascript file full of data
+3) streamgraph.pjs will be able to accept and display that data.
+4) Since standalone page is simple, each example will have its own html file (but no other files, other than data)
+
 Make 3 examples:
 1) EN Audio
 2) EN Hotttnesss
 3) Stream data, LTER, 
 4) Git Hub data, Google Reader, Gov Data, Mortality Data
 
+Write up the examples:
+1) How to use
+2) Pretty pictures.
+
+Blog them somewhere
