@@ -13,7 +13,7 @@ function Setting(kind, values, default_value)
 Setting.prototype = {
   get : function()
   {
-      f = this.kind + this.current;
+      f = this.current + this.kind;
       return eval(f);
   }
 };
@@ -57,7 +57,6 @@ Settings.prototype = {
         for (var i = 0; i < this.num_types(); i++)
             n += this.settings[i].values.length;
         return n;
-    },
-    
+    },    
 };
 
