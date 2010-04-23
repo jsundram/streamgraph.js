@@ -1,5 +1,9 @@
 0) get standalone page working.
-    Code Review -- expose layer size?
+    Data interface      DONE
+    Expose layerSize;   DONE
+    Layer hit-test      DONE (didn't do anythin with it)
+    Zoom                PUNT
+    Get it working in Chrome on Mac ... 
     Get code reviewed by somebody. Landon? 
 1) Make page a huge canvas, because CSS layout sucks. (DONE)
 2) Each example will just be a javascript file full of data
@@ -14,7 +18,7 @@ Make 3 examples:
     site_code,  Pick two sites (FK01 - Franklin Creek, CA; AH01 - Arroyo Hondo, CA)
     timestamp_local, (more dense sampling when there is a storm, try to get same storm.)
     nh4_uM, Ammonia
-    no3_uM, Nitrate
+    no3_uM, Nitrate 
     po4_uM, SKIP
     tdn_uM, Total Dissolved Nitrogen (Substract Ammonia and Nitrate, what's left will be Other: "Organic Nitrogen")
     tdp_uM, SKIP
@@ -33,3 +37,4 @@ Write up the examples:
 
 Blog them somewhere
 Running with Data?
+
