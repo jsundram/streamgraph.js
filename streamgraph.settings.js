@@ -49,7 +49,7 @@ Settings.prototype = {
     num_types : function()
     {
         return this.settings.length;
-    }
+    },
     
     num_options : function()
     {
@@ -57,7 +57,7 @@ Settings.prototype = {
         for (var i = 0; i < this.num_types(); i++)
             n += this.settings[i].values.length;
         return n;
-    }
+    },
     
 };
 

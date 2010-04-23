@@ -18,7 +18,8 @@ void setup()
   frameRate(10);
   smooth(); 
   
-  LastFmColors = loadImage('layers.jpg', 'jpg', function(){console.log('image loaded', LastFmColors.width, LastFmColors.height);});
+  var image_loaded = function(){console.log('image loaded', LastFmColors.width, LastFmColors.height);};
+  LastFmColors = loadImage('layers.jpg', 'jpg', image_loaded);
 }
 
 
@@ -35,25 +36,26 @@ void mouseClicked()
     for (var i = 0; i < SETTINGS.num_types(); i++)
     {
         var setting = SETTINGS.settings[i]; // settings. There, I said it again.
-        
+                
         for (var j = 0; j < setting.values.length; j++)
         {
-            if (setting.rects[j].contains(mouseX, mouseY)
+            if (setting.rects[j].contains(mouseX, mouseY))
             {
-                console.log("Changed settings", setting.current, " to ", setting.values[i]);
-                setting.current = setting.values[i];
+                console.log("Changed settings", setting.current, " to ", setting.values[j]);
+                setting.current = setting.values[j];
                 REPAINT = true;
                 break dance; // haha.
             }
         }
     }
+
 }
 void draw()
 {
-    if (curr_width != window.outerWidth || curr_height != window.outerHeight)
+    if (curr_width != window.innerWidth || curr_height != window.innerHeight)
     {
-        curr_width = window.outerWidth;
-        curr_height = window.outerHeight;
+        curr_width = window.innerWidth;
+        curr_height = window.innerHeight;
         
         REPAINT = true;
         
@@ -63,7 +65,7 @@ void draw()
         } 
         catch(e)
         {
-            console.log(e); 
+            console.log('expected error: '  + e); 
         }
     }
     
@@ -81,21 +83,21 @@ void draw()
 
 
 void drawSettings(r)
-{
+{    
     var spacing = 10; // space between setting groups
     var text_left = r.left;
     var text_width = (r.width - spacing * (SETTINGS.num_types() - 1)) / SETTINGS.num_options();
     var text_height = r.height * .75;
-    var text_bottom = r.top + th;
-    
+    var text_top = r.bottom() - text_height;
+        
     pushStyle();
-    textFont("Arial", th);
+    textFont("Arial", text_height);
     
     for (var i = 0; i < SETTINGS.num_types(); i++)
     {
         var setting = SETTINGS.settings[i]; // settings. There, I said it again.
         var num_values = setting.values.length;
-        
+ 
         // Draw rect for this setting.
         pushStyle();
         noFill();
@@ -103,14 +105,14 @@ void drawSettings(r)
         strokeWeight(1);
         rect(text_left, r.top, text_width * num_values, r.height);
         popStyle();
-        
+    
         setting.rects = []; // Tack on rects for hit-testing.
         for (var j = 0; j < num_values; j++)
         {
             var value = setting.values[j];
-            var text_color = (value == settings.current) ? 255 : 128;
+            var text_color = (value == setting.current) ? 255 : 128;
             fill(text_color);
-            text(value, text_left, text_bottom, text_width, th);
+            text(value, text_left, text_top, text_width, text_height);
             setting.rects[j] = new Rect(text_left, r.top, text_width, r.height);
             text_left += text_width;
         }
