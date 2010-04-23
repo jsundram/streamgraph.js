@@ -1,0 +1,342 @@
+
+/* GLOBALS :( */
+var SETTINGS = new Settings();
+var SETTINGS_RECT = null;
+
+// Keep track of screen resizing.
+var curr_height;
+var curr_width;
+var REPAINT = false;
+
+var LastFmColors = null;
+var LAYER_COLORS = null;
+
+void setup()
+{
+    size(window.outerWidth, window.outerHeight); 
+    
+    background(0);
+    frameRate(10);
+    smooth();
+    
+    
+    var image_loaded = function(){console.log('image loaded', LastFmColors.width, LastFmColors.height);};
+    LastFmColors = loadImage('layers.jpg', 'jpg', image_loaded); // TODO: need to fix the path to this image.
+}
+
+
+void mouseClicked()
+{
+    console.log('Click', mouseX, mouseY);
+    
+    // Did we click the settings?
+    if (SETTINGS_RECT !== null && SETTINGS_RECT.contains(mouseX, mouseY))
+    {
+        // See which setting got the click.
+        dance: // You'll see ...
+        for (var i = 0; i < SETTINGS.num_types(); i++)
+        {
+            var setting = SETTINGS.settings[i]; // settings. There, I said it again.
+            
+            for (var j = 0; j < setting.values.length; j++)
+            {
+                if (setting.rects[j].contains(mouseX, mouseY))
+                {
+                    console.log("Changed settings", setting.current, " to ", setting.values[j]);
+                    setting.current = setting.values[j];
+                    REPAINT = true;
+                    break dance; // see?
+                }
+            }
+        }
+    }
+}
+
+void mouseMoved()
+{
+    if (LAYER_COLORS === null)
+        return;
+    
+    color hit = pixels[mouseY * width + mouseX];
+    for (var i = 0; i < LAYER_COLORS.length; i++)
+    {
+        if (LAYER_COLORS[i] == hit)
+        {
+            console.log("Mouse is over layer:", i);
+            return;
+        }
+    }
+}
+
+void draw()
+{
+    if (curr_width != window.innerWidth || curr_height != window.innerHeight)
+    {
+        curr_width = window.innerWidth;
+        curr_height = window.innerHeight;
+        
+        REPAINT = true;
+        
+        try
+        {
+            size(curr_width, curr_height);
+        } 
+        catch(e)
+        {
+            console.log('expected error: '  + e);
+        }
+    }
+    
+    if (REPAINT)
+    {
+        /* Set up screen geometry */
+        var settings_top = height - 20; 
+        var legend_bottom = 20;
+        SETTINGS_RECT = new Rect(0, settings_top, width, 20);
+        
+        
+        /* Import data Dataset*/
+        var raw_data = getStreamgraphData();
+        var data_labels = getStreamgraphLabels();
+        var data = new DataSource(raw_data, data_labels);
+        var layers = data.make(data_labels.length, raw_data.length);
+        
+        
+        /* Calculate */
+        layer_sort = SETTINGS.get('Sort');
+        layers = layer_sort(layers);
+        
+        layer_layout = SETTINGS.get('Layout');
+        layer_layout(layers);
+        
+        color_picker = SETTINGS.get('ColorPicker');
+        color_picker(layers, LastFmColors); // TODO: Not great to pass LastFmColors all the time.
+        
+        // Just because we have all this space, doesn't mean we should use it all.
+        // The graphs tend to look better when they are wider than they are long.
+        var h = width / 4;
+        if (settings_top - legend_bottom < h)
+            h = settings_top - legend_bottom;
+        var space = ((settings_top - legend_bottom) - h) / 2;
+        
+        scaleLayers(layers, legend_bottom + space, settings_top - space);
+        
+        /* Draw */
+        curve = SETTINGS.get('Curve');
+        drawLayers(layers, curve());
+        drawLegend(new Rect(0, 0, width, legend_bottom), layers);
+        drawSettings(SETTINGS_RECT);
+        
+        paintColors(layers);
+        loadPixels(); // doing hit testing via index into pixels[], so need to do this first.
+        LAYER_COLORS = storeColors(layers);
+    }
+    
+    REPAINT = false;
+}
+
+
+void drawSettings(r)
+{
+    var spacing = 10; // space between setting groups
+    var text_left = r.left;
+    var text_width = (r.width - spacing * (SETTINGS.num_types() - 1)) / SETTINGS.num_options();
+    var text_height = r.height * .75;
+    var text_top = r.bottom() - text_height;
+    
+    pushStyle();
+    colorMode(RGB, 255);
+    textFont("Arial", text_height);
+    
+    for (var i = 0; i < SETTINGS.num_types(); i++)
+    {
+        var setting = SETTINGS.settings[i]; // settings. There, I said it again.
+        var num_values = setting.values.length;
+        
+        // Draw rect for this setting.
+        pushStyle();
+        noFill();
+        stroke(128);
+        strokeWeight(1);
+        rect(text_left, r.top, text_width * num_values, r.height);
+        popStyle();
+        
+        setting.rects = []; // Tack on rects for hit-testing.
+        for (var j = 0; j < num_values; j++)
+        {
+            var value = setting.values[j];
+            var text_color = (value == setting.current) ? 255 : 128;
+            fill(text_color);
+            text(value, text_left, text_top, text_width, text_height);
+            setting.rects[j] = new Rect(text_left, r.top, text_width, r.height);
+            text_left += text_width;
+        }
+        text_left += spacing;
+    }
+    popStyle();
+}
+
+
+// Return colorMode, range, color triplet (either in rgb or hsb, specified by colorMode)
+Array getColor(layer)
+{
+    if (layer.hasOwnProperty('hsb'))
+        return [HSB, 1.0].concat(layer.hsb);
+    
+    // assume some variety of rgb
+    if (3 < layer.rgb.length) // rgba (image.pixels returns this)
+    {
+        c = rgbaToInt(layer.rgb);
+        return [RGB, 255, red(c), green(c), blue(c)];
+    }
+    
+    return [RGB, 255].concat(layer.rgb);
+}
+
+// paintColors and storeColors are used to do precise color conversion. There may be a better way?
+void paintColors(layers)
+{
+    pushStyle();
+    for (var i = 0; i < layers.length; i++)
+    {
+        var c = getColor(layers[i]);
+        colorMode.apply(this, c.slice(0,2));
+        stroke.apply(this, c.slice(-3));
+        point(width-1, i);
+    }
+    popStyle();
+}
+
+void storeColors(layers)
+{
+    colors = []
+    for (var i = 0; i < layers.length; i++)
+        colors.push(pixels[i * width + (width-1)]);
+    return colors;
+}
+
+
+void drawLegend(Rect r, Layers[] layers)
+{
+    pushStyle();
+    
+    var left = r.left;
+    var entry_width = r.width / layers.length;
+    var block_width = .3 * entry_width; // rect
+    var text_width = .6 * entry_width; // text
+    var space = entry_width - block_width - text_width; // space
+    
+    textFont("Arial", r.height);
+    
+    for (var i = 0; i < layers.length; i++)
+    {
+        var layer = layers[i];
+        
+        var c = getColor(layer); // colorMode, range, color triplet [r, g, b] or  [h, s, b]
+        colorMode.apply(this, c.slice(0,2)); // i.e. colorMode(c[0], c[1])
+        fill.apply(this, c.slice(-3));       // i.e. fill(c[2], c[3], c[4])
+        
+        rect(left, r.top, block_width, r.height);
+        left += block_width + space;
+        
+        // + r.height/4 on the line below is a total fudge for alignment in v0.8
+        // It wasn't necessary in processing.js v0.6 (just used r.bottom()).
+        text(layer.name, left, r.top + r.height / 4, text_width, r.height);
+        left += text_width;
+    }
+    popStyle();
+}
+
+
+void drawLayers(Layers[] layers, boolean isGraphCurved)
+{
+    int n = layers.length;
+    int m = layers[0].size.length;
+    int lastIndex = m - 1;
+    int lastLayer = n - 1;
+    
+    background(0);
+    pushStyle();
+    noStroke();
+    
+    // Generate graph.
+    for (int i = 0; i < n; i++) 
+    {
+        Layer layer = layers[i];
+        int start = max(0, layer.onset - 1);
+        int end   = min(m - 1, layer.end);
+        boolean pxl = (i == lastLayer);
+        
+        var c = getColor(layer); 
+        colorMode.apply(this, c.slice(0,2)); // i.e. colorMode(c[0], c[1])
+        fill.apply(this, c.slice(-3));       // i.e. fill(c[2], c[3], c[4])
+        
+        // Draw shape
+        beginShape();
+        
+        // Draw top edge, left to right
+        graphVertex(start, layer.yTop, isGraphCurved, pxl);
+        for (int j = start; j <= end; j++)
+            graphVertex(j, layer.yTop, isGraphCurved, pxl);
+        
+        graphVertex(end, layer.yTop, isGraphCurved, pxl);
+        
+        // Draw bottom edge, right to left
+        graphVertex(end, layer.yBottom, isGraphCurved, false);
+        for (int j = end; j >= start; j--)
+            graphVertex(j, layer.yBottom, isGraphCurved, false);
+        
+        graphVertex(start, layer.yBottom, isGraphCurved, false);
+        
+        endShape(CLOSE);
+    }
+    
+    popStyle();
+}
+
+// TODO this probably shouldn't be called from graphVertex
+void computeLayerSize(n)
+{
+    // We want to display about 1 data point for every 15 pixels.
+    var density = 0.06;
+    if (n / width < density)
+        return n;
+    
+    return density * pixels;
+}
+
+void graphVertex(int point, float[] source, boolean curve, boolean pxl)
+{
+    var layerSize = computeLayerSize(source.length);
+    float x = map(point, 0, layerSize - 1, 0, width);
+    float y = source[point] - (pxl ? 1 : 0);
+    if (curve)
+        curveVertex(x, y);
+    else
+        vertex(x, y);
+}
+
+void scaleLayers(Layer[] layers, int screenTop, int screenBottom) 
+{
+    // Figure out max and min values of layers.
+    float lmin = layers[0].yTop[0];
+    float lmax = layers[0].yBottom[0];
+    for (int i = 0; i < layers[0].size.length; i++)
+    {
+        for (int j = 0; j < layers.length; j++)
+        {
+            lmin = min(lmin, layers[j].yTop[i]);
+            lmax = max(lmax, layers[j].yBottom[i]);
+        }
+    }
+    
+    float scale = (screenBottom - screenTop) / (lmax - lmin);
+    for (int i = 0; i < layers[0].size.length; i++) 
+    {
+        for (int j = 0; j < layers.length; j++) 
+        {
+            layers[j].yTop[i] = screenTop + scale * (layers[j].yTop[i] - lmin);
+            layers[j].yBottom[i] = screenTop + scale * (layers[j].yBottom[i] - lmin);
+        }
+    }
+}
