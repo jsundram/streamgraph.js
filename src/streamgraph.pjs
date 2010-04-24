@@ -1,27 +1,23 @@
-
 /* GLOBALS :( */
 var SETTINGS = new Settings();
-var SETTINGS_RECT = null;
+var LAYERS = null;
+var RedrawRegions = {}; RedrawRegions.all = 0; RedrawRegions.hover = 1; // enum
+var REDRAW_REGION = RedrawRegions.all;
 
-// Keep track of screen resizing.
-var curr_height;
-var curr_width;
-var REPAINT = false;
-
-var LastFmColors = null;
-var LAYER_COLORS = null;
 
 void setup()
 {
-    size(window.outerWidth, window.outerHeight); 
+    size(window.innerWidth, window.innerHeight); 
     
     background(0);
-    frameRate(10);
     smooth();
     
+    SETTINGS.LastFmColors = loadImage('../deps/layers', 'jpg');
+    SETTINGS.bounds = null;
+    SETTINGS.layer_colors = [];
     
-    var image_loaded = function(){console.log('image loaded', LastFmColors.width, LastFmColors.height);};
-    LastFmColors = loadImage('../deps/layers', 'jpg', image_loaded); // TODO: need to fix the path to this image.
+    window.onresize = function() { REDRAW_REGION = RedrawRegions.all; redraw(); }
+    noLoop(); // This needs to be called last.
 }
 
 
@@ -30,7 +26,7 @@ void mouseClicked()
     console.log('Click', mouseX, mouseY);
     
     // Did we click the settings?
-    if (SETTINGS_RECT !== null && SETTINGS_RECT.contains(mouseX, mouseY))
+    if (SETTINGS.bounds !== null && SETTINGS.bounds.contains(mouseX, mouseY))
     {
         // See which setting got the click.
         dance: // You'll see ...
@@ -44,7 +40,8 @@ void mouseClicked()
                 {
                     console.log("Changed settings", setting.current, " to ", setting.values[j]);
                     setting.current = setting.values[j];
-                    REPAINT = true;
+                    REDRAW_REGION = RedrawRegions.all;
+                    redraw();
                     break dance; // see?
                 }
             }
@@ -52,90 +49,118 @@ void mouseClicked()
     }
 }
 
+
+int getLayerHover()
+{
+    try
+    {
+        for (var i = 0; i < LAYERS.length; i++)
+            if (LAYERS[i].hover)
+                return i;
+    } catch(e){} // if LAYERS or hover not set, don't die.
+    
+    return -1;
+}
+
+
 void mouseMoved()
 {
-    if (LAYER_COLORS === null)
-        return;
-    
-        
     color hit = get(mouseX, mouseY);
-    for (var i = 0; i < LAYER_COLORS.length; i++)
+
+    var was_hovering = getLayerHover() != -1;
+
+    for (var i = 0; i < SETTINGS.layer_colors.length; i++)
+        LAYERS[i].hover = (SETTINGS.layer_colors[i] == hit);
+
+    var is_hovering = getLayerHover() != -1;
+
+    if (is_hovering != was_hovering || is_hovering)
     {
-        if (LAYER_COLORS[i] == hit)
-        {
-            console.log("Mouse is over layer:", i);
-            return;
-        }
+        REDRAW_REGION = RedrawRegions.hover;
+        redraw();
     }
 }
 
+
 void draw()
-{    
-    if (curr_width != window.innerWidth || curr_height != window.innerHeight)
+{   
+    var m = millis();
+    
+    if (REDRAW_REGION == RedrawRegions.all)
     {
-        curr_width = window.innerWidth;
-        curr_height = window.innerHeight;
-        
-        REPAINT = true;
-        
         try
         {
-            size(curr_width, curr_height);
+            size(window.innerWidth, window.innerHeight);
         } 
         catch(e)
         {
+            // This is a known issue in processing v0.8:
+            // https://processing-js.lighthouseapp.com/projects/41284-processingjs/tickets/576
             console.log('expected error: '  + e);
         }
     }
+
+    /* Set up screen geometry */
+    var text_height = 20;
+    var settings_top = height - text_height; 
+    var legend_bottom = text_height;    
+    SETTINGS.bounds = new Rect(0, settings_top, width, text_height);
     
-    if (REPAINT)
-    {
-        var m = millis();
-        /* Set up screen geometry */
-        var settings_top = height - 20; 
-        var legend_bottom = 20;
-        SETTINGS_RECT = new Rect(0, settings_top, width, 20);
+    /* Deal with mouse hover stuff */
+    var hover = new Rect(width - 125, 0, 125, text_height); 
+    if (REDRAW_REGION == RedrawRegions.hover)
+    {        
+        fill(0); // erase background
+        rect(hover.left, hover.top, hover.width, hover.height + hover.height/4);// descenders
         
-        
-        /* Import data Dataset*/
-        var raw_data = getStreamgraphData();
-        var data_labels = getStreamgraphLabels();
-        var data = new DataSource(raw_data, data_labels);
-        var layers = data.make(data_labels.length, raw_data.length);
-        
-        
-        /* Calculate */
-        layer_sort = SETTINGS.get('Sort');
-        layers = layer_sort(layers);
-        
-        layer_layout = SETTINGS.get('Layout');
-        layer_layout(layers);
-        
-        color_picker = SETTINGS.get('ColorPicker');
-        color_picker(layers, LastFmColors); // TODO: Not great to pass LastFmColors all the time.
-        
-        // Just because we have all this space, doesn't mean we should use it all.
-        // The graphs tend to look better when they are wider than they are long.
-        var h = width / 4;
-        if (settings_top - legend_bottom < h)
-            h = settings_top - legend_bottom;
-        var space = ((settings_top - legend_bottom) - h) / 2;
-        
-        scaleLayers(layers, legend_bottom + space, settings_top - space);
-        
-        /* Draw */
-        curve = SETTINGS.get('Curve');
-        drawLayers(layers, curve());
-        drawLegend(new Rect(0, 0, width, legend_bottom), layers);
-        drawSettings(SETTINGS_RECT);
-        
-        LAYER_COLORS = storeColors(layers);
-        
-        console.log("total time to draw: ", millis() - m);
-    }
+        var h = getLayerHover(); 
+        if (0 <= h)
+        {
+            var i = Math.floor(LAYERS[h].size.length * mouseX / width);
+            var val = LAYERS[h].size[i] + 0.00;
+            fill(200);
+            textFont("Arial", text_height);
+            var hover_text = LAYERS[h].name + ': ' + val;
+            text(hover_text, hover.left, hover.top + hover.height / 4, hover.width, hover.height);
+        }
+        return;
+    }    
     
+    /* Import data Dataset*/
+    var raw_data = getStreamgraphData();
+    var data_labels = getStreamgraphLabels();
+    var data = new DataSource(raw_data, data_labels);
+    var layers = data.make(data_labels.length, raw_data.length);
+        
+    /* Calculate */
+    var layer_sort = SETTINGS.get('Sort');
+    var layers = layer_sort(layers);
     
-    REPAINT = false;
+    var layer_layout = SETTINGS.get('Layout');
+    layer_layout(layers);
+    
+    var color_picker = SETTINGS.get('ColorPicker');
+    color_picker(layers, SETTINGS.LastFmColors);
+    
+    // Just because we have all this space, doesn't mean we should use it all.
+    // The graphs tend to look better when they are wider than they are long.
+    var h = width / 4;
+    if (settings_top - legend_bottom < h)
+        h = settings_top - legend_bottom;
+    var space = ((settings_top - legend_bottom) - h) / 2;
+    
+    scaleLayers(layers, legend_bottom + space, settings_top - space);
+    
+    /* Draw */
+    var curve = SETTINGS.get('Curve');
+    drawLayers(layers, curve());
+    drawLegend(new Rect(0, 0, width - hover.width, legend_bottom), layers);
+    drawSettings(SETTINGS.bounds);
+    
+    /* Used for hit testing */
+    SETTINGS.layer_colors = storeColors(layers);
+    LAYERS = layers;   
+    console.log("total time to draw: ", millis() - m);
 }
 
 
@@ -196,6 +221,7 @@ Array getColor(layer)
     return [RGB, 255].concat(layer.rgb);
 }
 
+
 void storeColors(layers)
 {
     pushStyle();
@@ -209,6 +235,7 @@ void storeColors(layers)
     popStyle();
     return get(width-1, 0, 1, layers.length).pixels;
 }
+
 
 void drawLegend(Rect r, Layers[] layers)
 {
@@ -288,7 +315,8 @@ void drawLayers(Layers[] layers, boolean isGraphCurved)
     popStyle();
 }
 
-// TODO this probably shouldn't be called from graphVertex
+
+// TODO: this probably shouldn't be called from graphVertex
 void computeLayerSize(n)
 {
     // We want to display about 1 data point for every 15 pixels.
@@ -298,6 +326,7 @@ void computeLayerSize(n)
     
     return density * pixels;
 }
+
 
 void graphVertex(int point, float[] source, boolean curve, boolean pxl)
 {
@@ -309,6 +338,7 @@ void graphVertex(int point, float[] source, boolean curve, boolean pxl)
     else
         vertex(x, y);
 }
+
 
 void scaleLayers(Layer[] layers, int screenTop, int screenBottom) 
 {
