@@ -1,40 +1,43 @@
-0) get standalone page working.
-    Data interface      DONE
-    Expose layerSize;   DONE
-    Layer hit-test      DONE (didn't do anythin with it)
+FEATURES:
+    Fixed colors        PUNT (can't seed Math.Random)    
+    Title               PUNT (can't center without some text knowledge)
+    Save PNG            PUNT (save not currently implemented in 0.8)
     Zoom                PUNT
-    Get it working in Chrome on Mac ... 
-    Get code reviewed by somebody. Landon? 
-1) Make page a huge canvas, because CSS layout sucks. (DONE)
-2) Each example will just be a javascript file full of data
-3) streamgraph.pjs will be able to accept and display that data.
-4) Since standalone page is simple, each example will have its own html file (but no other files, other than data)
+    
+BUGS:
+    Chrome on Mac ...   PUNT (hopefully this will eventually get fixed in processing/chrome?)
 
-Make 3 examples:
-1) EN Audio
-2) EN Hotttnesss
-3) Stream data, LTER, 
-    http://sbc.lternet.edu/external/Land/Data/Stream_Chemistry/stream_chemistry_allyears.txt
-    site_code,  Pick two sites (FK01 - Franklin Creek, CA; AH01 - Arroyo Hondo, CA)
-    timestamp_local, (more dense sampling when there is a storm, try to get same storm.)
-    nh4_uM, Ammonia
-    no3_uM, Nitrate 
-    po4_uM, SKIP
-    tdn_uM, Total Dissolved Nitrogen (Substract Ammonia and Nitrate, what's left will be Other: "Organic Nitrogen")
-    tdp_uM, SKIP
-    tpc_uM, SKIP
-    tpn_uM, Interesting (if present, looks like all -999.0)
-    tpp_uM, SKIP
-    tss_mgperLiter, SKIP
-    spec_cond_uSpercm SKIP?
-    Look at just a storm. Possibly also all 10 years.
+BEFORE PUBLICATION:
+    GET CODE REVIEWED.
+        Stop calling computeLayerSize from graphVertex.
+        Globals?
+        Stop passing lastFmColors all the time.
+    
+    Make 3 examples:
+    1) EN Audio
+    2) EN Hotttnesss
+    3) Stream data, LTER, 
+        http://sbc.lternet.edu/external/Land/Data/Stream_Chemistry/stream_chemistry_allyears.txt
+        site_code,  Pick two sites (FK01 - Franklin Creek, CA; AH01 - Arroyo Hondo, CA)
+        timestamp_local, (more dense sampling when there is a storm, try to get same storm.)
+        nh4_uM, Ammonia
+        no3_uM, Nitrate 
+        po4_uM, SKIP
+        tdn_uM, Total Dissolved Nitrogen (Substract Ammonia and Nitrate, what's left will be Other: "Organic Nitrogen")
+        tdp_uM, SKIP
+        tpc_uM, SKIP
+        tpn_uM, Interesting (if present, looks like all -999.0)
+        tpp_uM, SKIP
+        tss_mgperLiter, SKIP
+        spec_cond_uSpercm SKIP?
+        Look at just a storm. Possibly also all 10 years.
 
-4) Git Hub data, Google Reader, Gov Data, Mortality Data
+    4) Git Hub data, Google Reader, Gov Data, Mortality Data
 
-Write up the examples:
-1) How to use
-2) Pretty pictures.
+    Write up the examples:
+    1) How to use
+    2) Pretty pictures.
 
-Blog them somewhere
-Running with Data?
+    Blog them somewhere
+    Running with Data?
 
