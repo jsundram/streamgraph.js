@@ -30,7 +30,7 @@ function Settings()
     this.colors = {};
     this.colors.background = 0;
     this.colors.neutral = 200;
-    this.colors.highlight = 255;        
+    this.colors.highlight = 255;
 }
 
 Settings.prototype = {
@@ -62,6 +62,6 @@ Settings.prototype = {
         for (var i = 0; i < this.num_types(); i++)
             n += this.settings[i].values.length;
         return n;
-    },    
+    },
 };
 
