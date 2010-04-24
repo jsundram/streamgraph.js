@@ -325,7 +325,7 @@ void computeLayerSize(n)
     if (n / width < density)
         return n;
     
-    return density * pixels;
+    return density * width;
 }
 
 
