@@ -26,6 +26,11 @@ function Settings()
     this.Curve = new Setting("Curve", ["Curved", "Jagged"], "Curved");
     
     this.settings = [this.Sort, this.Layout, this.ColorPicker, this.Curve];
+    
+    this.colors = {};
+    this.colors.background = 0;
+    this.colors.neutral = 200;
+    this.colors.highlight = 255;        
 }
 
 Settings.prototype = {
