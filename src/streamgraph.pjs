@@ -21,7 +21,7 @@ void setup()
     
     
     var image_loaded = function(){console.log('image loaded', LastFmColors.width, LastFmColors.height);};
-    LastFmColors = loadImage('layers.jpg', 'jpg', image_loaded); // TODO: need to fix the path to this image.
+    LastFmColors = loadImage('../deps/layers', 'jpg', image_loaded); // TODO: need to fix the path to this image.
 }
 
 
@@ -57,7 +57,8 @@ void mouseMoved()
     if (LAYER_COLORS === null)
         return;
     
-    color hit = pixels[mouseY * width + mouseX];
+        
+    color hit = get(mouseX, mouseY);
     for (var i = 0; i < LAYER_COLORS.length; i++)
     {
         if (LAYER_COLORS[i] == hit)
@@ -69,7 +70,7 @@ void mouseMoved()
 }
 
 void draw()
-{
+{    
     if (curr_width != window.innerWidth || curr_height != window.innerHeight)
     {
         curr_width = window.innerWidth;
@@ -89,6 +90,7 @@ void draw()
     
     if (REPAINT)
     {
+        var m = millis();
         /* Set up screen geometry */
         var settings_top = height - 20; 
         var legend_bottom = 20;
@@ -127,10 +129,11 @@ void draw()
         drawLegend(new Rect(0, 0, width, legend_bottom), layers);
         drawSettings(SETTINGS_RECT);
         
-        paintColors(layers);
-        loadPixels(); // doing hit testing via index into pixels[], so need to do this first.
         LAYER_COLORS = storeColors(layers);
+        
+        console.log("total time to draw: ", millis() - m);
     }
+    
     
     REPAINT = false;
 }
@@ -193,8 +196,7 @@ Array getColor(layer)
     return [RGB, 255].concat(layer.rgb);
 }
 
-// paintColors and storeColors are used to do precise color conversion. There may be a better way?
-void paintColors(layers)
+void storeColors(layers)
 {
     pushStyle();
     for (var i = 0; i < layers.length; i++)
@@ -205,16 +207,8 @@ void paintColors(layers)
         point(width-1, i);
     }
     popStyle();
+    return get(width-1, 0, 1, layers.length).pixels;
 }
-
-void storeColors(layers)
-{
-    colors = []
-    for (var i = 0; i < layers.length; i++)
-        colors.push(pixels[i * width + (width-1)]);
-    return colors;
-}
-
 
 void drawLegend(Rect r, Layers[] layers)
 {
