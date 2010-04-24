@@ -110,20 +110,7 @@ void draw()
     var hover = new Rect(width - 125, 0, 125, text_height);
     if (REDRAW_REGION == RedrawRegions.hover)
     {
-        noStroke();
-        fill(SETTINGS.colors.background); // erase background
-        rect(hover.left, hover.top, hover.width, hover.height + hover.height/4);// descenders
-        
-        var h = getLayerHover();
-        if (0 <= h)
-        {
-            var i = Math.floor(LAYERS[h].size.length * mouseX / width);
-            var val = LAYERS[h].size[i] + 0.00;
-            fill(SETTINGS.colors.neutral);
-            textFont("Arial", text_height);
-            var hover_text = LAYERS[h].name + ': ' + val;
-            text(hover_text, hover.left, hover.top + hover.height / 4, hover.width, hover.height);
-        }
+        drawHover(hover);
         return;
     }
     
@@ -269,6 +256,25 @@ void drawLegend(Rect r, Layers[] layers)
     popStyle();
 }
 
+void drawHover(Rect r)
+{
+    pushStyle();
+    noStroke();
+    fill(SETTINGS.colors.background); // erase background
+    rect(r.left, r.top, r.width, r.height + r.height/4);// descenders
+    
+    var h = getLayerHover();
+    if (0 <= h)
+    {
+        var i = Math.floor(LAYERS[h].size.length * mouseX / width);
+        var val = LAYERS[h].size[i] + 0.00;
+        fill(SETTINGS.colors.neutral);
+        textFont("Arial", r.height);
+        var hover_text = LAYERS[h].name + ': ' + val;
+        text(hover_text, r.left+1, r.top + r.height / 4, r.width, r.height);
+    }
+    popStyle();
+}
 
 void drawLayers(Layers[] layers, boolean isGraphCurved)
 {
