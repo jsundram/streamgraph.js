@@ -15,6 +15,7 @@ BEFORE PUBLICATION:
     
     Make 3 examples:
     1) EN Audio
+        Glenn Gould Aria
     2) EN Hotttnesss
     3) Stream data, LTER, 
         http://sbc.lternet.edu/external/Land/Data/Stream_Chemistry/stream_chemistry_allyears.txt
