@@ -31,6 +31,9 @@ function Settings()
     this.colors.background = 0;
     this.colors.neutral = 200;
     this.colors.highlight = 255;
+    
+    this.show_settings = false;
+    this.show_legend = true;
 }
 
 Settings.prototype = {

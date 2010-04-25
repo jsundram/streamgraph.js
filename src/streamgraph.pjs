@@ -102,12 +102,14 @@ void draw()
     
     /* Set up screen geometry */
     var text_height = 20;
-    var settings_top = height - text_height;
-    var legend_bottom = text_height;    
+    var settings_top = SETTINGS.show_settings ? height - text_height : height;
+    var legend_bottom = SETTINGS.show_legend ? text_height : 0;
     SETTINGS.bounds = new Rect(0, settings_top, width, text_height);
     
     /* Deal with mouse hover stuff */
-    var hover = new Rect(width - 125, 0, 125, text_height);
+    // Would like to size this rect so that we know it can fit whatever text it has to.
+    // but there is no way to measure text in processing.js yet.
+    var hover = new Rect(width - 175, 2, 175, text_height*.75);
     if (REDRAW_REGION == RedrawRegions.hover)
     {
         drawHover(hover);
@@ -142,8 +144,10 @@ void draw()
     /* Draw */
     var curve = SETTINGS.get('Curve');
     drawLayers(layers, curve());
-    drawLegend(new Rect(0, 0, width - hover.width, legend_bottom), layers);
-    drawSettings(SETTINGS.bounds);
+    if (SETTINGS.show_legend)
+        drawLegend(new Rect(0, 0, width - hover.width, legend_bottom), layers);
+    if (SETTINGS.show_settings)
+        drawSettings(SETTINGS.bounds);
     
     /* Used for hit testing */
     SETTINGS.layer_colors = storeColors(layers);
