@@ -17,7 +17,7 @@ function Layer(name, size)
     this.sum = 0;
     this.volatility = 0;
     this.onset = -1;
-    this.end = 0;
+    this.end = -1;
     
     for (var i = 0; i < size.length; i++)
     {
@@ -33,7 +33,8 @@ function Layer(name, size)
         if (0 < i)
             this.volatility = Math.max(this.volatility, Math.abs(size[i] - size[i-1]));
     }
-    
+    if (this.end == -1)
+        this.end = this.onset+1;
 }
 
 // Expect data to be a 2D array.
@@ -213,7 +214,7 @@ function StreamLayout(layers)
                 belowSize = 0.5 * size;
                 for (var k = j + 1; k < m; k++)
                     belowSize += layers[k].size[i];
-                increase = size = layers[j].size[i-1];
+                increase = size - layers[j].size[i-1];
                 moveUp = (totalSize == 0) ? 0 : (belowSize / totalSize);
             }
             
