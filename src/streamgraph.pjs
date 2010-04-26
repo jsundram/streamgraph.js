@@ -21,67 +21,6 @@ void setup()
 }
 
 
-void mouseClicked()
-{
-    console.log('Click', mouseX, mouseY);
-    
-    // Did we click the settings?
-    if (SETTINGS.bounds !== null && SETTINGS.bounds.contains(mouseX, mouseY))
-    {
-        // See which setting got the click.
-        dance: // You'll see ...
-        for (var i = 0; i < SETTINGS.num_types(); i++)
-        {
-            var setting = SETTINGS.settings[i]; // settings. There, I said it again.
-            
-            for (var j = 0; j < setting.values.length; j++)
-            {
-                if (setting.rects[j].contains(mouseX, mouseY))
-                {
-                    console.log("Changed settings", setting.current, " to ", setting.values[j]);
-                    setting.current = setting.values[j];
-                    REDRAW_REGION = RedrawRegions.all;
-                    redraw();
-                    break dance; // see?
-                }
-            }
-        }
-    }
-}
-
-
-int getLayerHover()
-{
-    try
-    {
-        for (var i = 0; i < LAYERS.length; i++)
-            if (LAYERS[i].hover)
-                return i;
-    } catch(e){} // if LAYERS or hover not set, don't die.
-    
-    return -1;
-}
-
-
-void mouseMoved()
-{
-    color hit = get(mouseX, mouseY);
-    
-    var was_hovering = getLayerHover() != -1;
-    
-    for (var i = 0; i < SETTINGS.layer_colors.length; i++)
-        LAYERS[i].hover = (SETTINGS.layer_colors[i] == hit);
-    
-    var is_hovering = getLayerHover() != -1;
-    
-    if (is_hovering != was_hovering || is_hovering)
-    {
-        REDRAW_REGION = RedrawRegions.hover;
-        redraw();
-    }
-}
-
-
 void draw()
 {
     var m = millis();
@@ -157,6 +96,91 @@ void draw()
 }
 
 
+void scaleLayers(Layer[] layers, int screenTop, int screenBottom) 
+{
+    // Figure out max and min values of layers.
+    float lmin = layers[0].yTop[0];
+    float lmax = layers[0].yBottom[0];
+    for (int i = 0; i < layers[0].size.length; i++)
+    {
+        for (int j = 0; j < layers.length; j++)
+        {
+            lmin = min(lmin, layers[j].yTop[i]);
+            lmax = max(lmax, layers[j].yBottom[i]);
+        }
+    }
+    
+    float scale = (screenBottom - screenTop) / (lmax - lmin);
+    for (int i = 0; i < layers[0].size.length; i++)
+    {
+        for (int j = 0; j < layers.length; j++)
+        {
+            layers[j].yTop[i] = screenTop + scale * (layers[j].yTop[i] - lmin);
+            layers[j].yBottom[i] = screenTop + scale * (layers[j].yBottom[i] - lmin);
+        }
+    }
+}
+
+
+void drawLayers(Layers[] layers, boolean isGraphCurved)
+{
+    int n = layers.length;
+    int m = layers[0].size.length;
+    int lastIndex = m - 1;
+    int lastLayer = n - 1;
+    
+    background(SETTINGS.colors.background);
+    pushStyle();
+    noStroke();
+    
+    // Generate graph.
+    for (int i = 0; i < n; i++) 
+    {
+        Layer layer = layers[i];
+        int start = max(0, layer.onset - 1);
+        int end   = min(m - 1, layer.end);
+        boolean pxl = (i == lastLayer);
+        
+        var c = getColor(layer); 
+        colorMode.apply(this, c.slice(0,2)); // i.e. colorMode(c[0], c[1])
+        fill.apply(this, c.slice(-3));       // i.e. fill(c[2], c[3], c[4])
+        
+        // Draw shape
+        beginShape();
+        
+        // Draw top edge, left to right
+        graphVertex(start, layer.yTop, isGraphCurved, pxl);
+        for (int j = start; j <= end; j++)
+            graphVertex(j, layer.yTop, isGraphCurved, pxl);
+        
+        graphVertex(end, layer.yTop, isGraphCurved, pxl);
+        
+        // Draw bottom edge, right to left
+        graphVertex(end, layer.yBottom, isGraphCurved, false);
+        for (int j = end; j >= start; j--)
+            graphVertex(j, layer.yBottom, isGraphCurved, false);
+        
+        graphVertex(start, layer.yBottom, isGraphCurved, false);
+        
+        endShape(CLOSE);
+    }
+    
+    popStyle();
+}
+
+
+void graphVertex(int point, float[] source, boolean curve, boolean pxl)
+{
+    var layerSize = source.length; // This could be a lot of points.
+    float x = map(point, 0, layerSize - 1, 0, width);
+    float y = source[point] - (pxl ? 1 : 0);
+    if (curve)
+        curveVertex(x, y);
+    else
+        vertex(x, y);
+}
+
+
 void drawSettings(r)
 {
     var spacing = 10; // space between setting groups
@@ -215,21 +239,6 @@ Array getColor(layer)
 }
 
 
-void storeColors(layers)
-{
-    pushStyle();
-    for (var i = 0; i < layers.length; i++)
-    {
-        var c = getColor(layers[i]);
-        colorMode.apply(this, c.slice(0,2));
-        stroke.apply(this, c.slice(-3));
-        point(width-1, i);
-    }
-    popStyle();
-    return get(width-1, 0, 1, layers.length).pixels;
-}
-
-
 void drawLegend(Rect r, Layers[] layers)
 {
     pushStyle();
@@ -261,6 +270,22 @@ void drawLegend(Rect r, Layers[] layers)
     popStyle();
 }
 
+/* The remainder of the file is dedicated to handling clicks and hover.*/
+void storeColors(layers)
+{
+    pushStyle();
+    for (var i = 0; i < layers.length; i++)
+    {
+        var c = getColor(layers[i]);
+        colorMode.apply(this, c.slice(0,2));
+        stroke.apply(this, c.slice(-3));
+        point(width-1, i);
+    }
+    popStyle();
+    return get(width-1, 0, 1, layers.length).pixels;
+}
+
+
 void drawHover(Rect r)
 {
     pushStyle();
@@ -282,98 +307,65 @@ void drawHover(Rect r)
     popStyle();
 }
 
-void drawLayers(Layers[] layers, boolean isGraphCurved)
+
+void mouseClicked()
 {
-    int n = layers.length;
-    int m = layers[0].size.length;
-    int lastIndex = m - 1;
-    int lastLayer = n - 1;
+    console.log('Click', mouseX, mouseY);
     
-    background(SETTINGS.colors.background);
-    pushStyle();
-    noStroke();
-    
-    // Generate graph.
-    for (int i = 0; i < n; i++) 
+    // Did we click the settings?
+    if (SETTINGS.bounds !== null && SETTINGS.bounds.contains(mouseX, mouseY))
     {
-        Layer layer = layers[i];
-        int start = max(0, layer.onset - 1);
-        int end   = min(m - 1, layer.end);
-        boolean pxl = (i == lastLayer);
-        
-        var c = getColor(layer); 
-        colorMode.apply(this, c.slice(0,2)); // i.e. colorMode(c[0], c[1])
-        fill.apply(this, c.slice(-3));       // i.e. fill(c[2], c[3], c[4])
-        
-        // Draw shape
-        beginShape();
-        
-        // Draw top edge, left to right
-        graphVertex(start, layer.yTop, isGraphCurved, pxl);
-        for (int j = start; j <= end; j++)
-            graphVertex(j, layer.yTop, isGraphCurved, pxl);
-        
-        graphVertex(end, layer.yTop, isGraphCurved, pxl);
-        
-        // Draw bottom edge, right to left
-        graphVertex(end, layer.yBottom, isGraphCurved, false);
-        for (int j = end; j >= start; j--)
-            graphVertex(j, layer.yBottom, isGraphCurved, false);
-        
-        graphVertex(start, layer.yBottom, isGraphCurved, false);
-        
-        endShape(CLOSE);
-    }
-    
-    popStyle();
-}
-
-
-// TODO: this probably shouldn't be called from graphVertex
-void computeLayerSize(n)
-{
-    // return n; // Nothing but the facts
-    // We want to display about 1 data point for every 15 pixels.
-    var density = 1.0/15.0;
-    if (n / width < density)
-        return n;
-    
-    return density * width;
-}
-
-void graphVertex(int point, float[] source, boolean curve, boolean pxl)
-{
-    var layerSize = computeLayerSize(source.length);
-    float x = map(point, 0, layerSize - 1, 0, width);
-    float y = source[point] - (pxl ? 1 : 0);
-    if (curve)
-        curveVertex(x, y);
-    else
-        vertex(x, y);
-}
-
-
-void scaleLayers(Layer[] layers, int screenTop, int screenBottom) 
-{
-    // Figure out max and min values of layers.
-    float lmin = layers[0].yTop[0];
-    float lmax = layers[0].yBottom[0];
-    for (int i = 0; i < layers[0].size.length; i++)
-    {
-        for (int j = 0; j < layers.length; j++)
+        // See which setting got the click.
+        dance: // You'll see ...
+        for (var i = 0; i < SETTINGS.num_types(); i++)
         {
-            lmin = min(lmin, layers[j].yTop[i]);
-            lmax = max(lmax, layers[j].yBottom[i]);
-        }
-    }
-    
-    float scale = (screenBottom - screenTop) / (lmax - lmin);
-    for (int i = 0; i < layers[0].size.length; i++)
-    {
-        for (int j = 0; j < layers.length; j++)
-        {
-            layers[j].yTop[i] = screenTop + scale * (layers[j].yTop[i] - lmin);
-            layers[j].yBottom[i] = screenTop + scale * (layers[j].yBottom[i] - lmin);
+            var setting = SETTINGS.settings[i]; // settings. There, I said it again.
+            
+            for (var j = 0; j < setting.values.length; j++)
+            {
+                if (setting.rects[j].contains(mouseX, mouseY))
+                {
+                    console.log("Changed settings", setting.current, " to ", setting.values[j]);
+                    setting.current = setting.values[j];
+                    REDRAW_REGION = RedrawRegions.all;
+                    redraw();
+                    break dance; // see?
+                }
+            }
         }
     }
 }
+
+
+int getLayerHover()
+{
+    try
+    {
+        for (var i = 0; i < LAYERS.length; i++)
+            if (LAYERS[i].hover)
+                return i;
+    } catch(e){} // if LAYERS or hover not set, don't die.
+    
+    return -1;
+}
+
+
+void mouseMoved()
+{
+    color hit = get(mouseX, mouseY);
+    
+    var was_hovering = getLayerHover() != -1;
+    
+    for (var i = 0; i < SETTINGS.layer_colors.length; i++)
+        LAYERS[i].hover = (SETTINGS.layer_colors[i] == hit);
+    
+    var is_hovering = getLayerHover() != -1;
+    
+    if (is_hovering != was_hovering || is_hovering)
+    {
+        REDRAW_REGION = RedrawRegions.hover;
+        redraw();
+    }
+}
+
+
