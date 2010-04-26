@@ -9,8 +9,8 @@ void setup()
 {
     size(window.innerWidth, window.innerHeight);
     
-    SETTINGS.LastFmColors = loadImage('../deps/layers', 'jpg');
-    SETTINGS.bounds = null;    
+    SETTINGS.LastFmColors = loadImage('../deps/layers-nyt', 'jpg');
+    SETTINGS.bounds = null;
     SETTINGS.layer_colors = [];
     
     background(SETTINGS.colors.background);
@@ -153,6 +153,7 @@ void draw()
     SETTINGS.layer_colors = storeColors(layers);
     LAYERS = layers;
     console.log("total time to draw: ", millis() - m);
+    console.log("showing ", computeLayerSize(raw_data.length), "out of ", raw_data.length, "points")
 }
 
 
@@ -205,10 +206,10 @@ Array getColor(layer)
     
     // assume some variety of rgb
     if (3 < layer.rgb.length) // rgba (image.pixels returns this)
-    {
-        c = rgbaToInt(layer.rgb);
-        return [RGB, 255, red(c), green(c), blue(c)];
-    }
+        layer.rgb = rgbaToInt(layer.rgb);
+        
+    if (typeof(layer.rgb) == 'number')
+        return [RGB, 255, red(layer.rgb), green(layer.rgb), blue(layer.rgb)];
     
     return [RGB, 255].concat(layer.rgb);
 }
@@ -275,6 +276,7 @@ void drawHover(Rect r)
         fill(SETTINGS.colors.neutral);
         textFont("Arial", r.height);
         var hover_text = LAYERS[h].name + ': ' + val;
+        console.log(hover_text, "index", i, LAYERS[h].size[i]);
         text(hover_text, r.left+1, r.top + r.height / 4, r.width, r.height);
     }
     popStyle();
@@ -330,14 +332,14 @@ void drawLayers(Layers[] layers, boolean isGraphCurved)
 // TODO: this probably shouldn't be called from graphVertex
 void computeLayerSize(n)
 {
+    // return n; // Nothing but the facts
     // We want to display about 1 data point for every 15 pixels.
-    var density = 0.06;
+    var density = 1.0/15.0;
     if (n / width < density)
         return n;
     
     return density * width;
 }
-
 
 void graphVertex(int point, float[] source, boolean curve, boolean pxl)
 {
