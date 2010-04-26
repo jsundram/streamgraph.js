@@ -10,7 +10,7 @@ function Layer(name, size)
 {
     for (var i = 0; i < size.length; i++)
         if (size[i] < 0)
-            throw("No negative sizes allowed");
+            throw("No negative values allowed");
     
     this.name = name;
     this.size = size;
@@ -29,10 +29,11 @@ function Layer(name, size)
             else
                 this.end = i;
         }
+        
+        if (0 < i)
+            this.volatility = Math.max(this.volatility, Math.abs(size[i] - size[i-1]));
     }
     
-    if (0 < i)
-        this.volatility = Math.max(this.volatility, Math.abs(size[i] - size[i-1]));
 }
 
 // Expect data to be a 2D array.
@@ -48,7 +49,10 @@ DataSource.prototype = {
     {
         layers = [];
         if (this.data.length < sizeArrayLength || this.data[0].length < numLayers)
-            throw("Wrong data size");
+        {
+            console.log(this.data.length , " < " , sizeArrayLength , " or " , this.data[0].length , " < " , numLayers);
+            throw("Wrong data size:");
+        }
         
         for (var col = 0; col < numLayers; col++)
         {
