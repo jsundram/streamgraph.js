@@ -42,7 +42,7 @@ void draw()
         {
             // This is a known issue in processing v0.8:
             // https://processing-js.lighthouseapp.com/projects/41284-processingjs/tickets/576
-            console.log('expected error: '  + e);
+            //console.log('expected error: '  + e);
         }
     }
     
@@ -113,9 +113,10 @@ void draw()
         drawSettings(SETTINGS.bounds);
     
     /* Used for hit testing */
-    SETTINGS.layer_colors = storeColors(layers);
+    if (REDRAW_REGION == RedrawRegions.color || 0 == SETTINGS.layer_colors.length) 
+        SETTINGS.layer_colors = storeColors(layers);
     LAYERS = layers;
-    console.log("total time to draw: ", millis() - m);
+    //console.log("total time to draw: ", millis() - m);
 }
 
 
@@ -165,7 +166,7 @@ void drawLayers(Layers[] layers, boolean isGraphCurved)
         
         var c = getColor(layer); 
         colorMode.apply(this, c.slice(0,2)); // i.e. colorMode(c[0], c[1])
-        fill.apply(this, c.slice(-3));       // i.e. fill(c[2], c[3], c[4])
+        fill.apply(this, c.slice(2));       // i.e. fill(c[2], c[3], c[4])
         
         // Draw shape
         beginShape();
@@ -250,11 +251,11 @@ Array getColor(layer)
         return [HSB, 1.0].concat(layer.hsb);
     
     // assume some variety of rgb
-    if (3 < layer.rgb.length) // rgba (image.pixels returns this)
+    if (4 < layer.rgb.length) // rgba (image.pixels returns this)
         layer.rgb = rgbaToInt(layer.rgb);
         
     if (typeof(layer.rgb) == 'number')
-        return [RGB, 255, red(layer.rgb), green(layer.rgb), blue(layer.rgb)];
+        return [RGB, 255, red(layer.rgb), green(layer.rgb), blue(layer.rgb), alpha(layer.rgb)];
     
     return [RGB, 255].concat(layer.rgb);
 }
@@ -278,7 +279,7 @@ void drawLegend(Rect r, Layers[] layers)
         
         var c = getColor(layer); // colorMode, range, color triplet [r, g, b] or  [h, s, b]
         colorMode.apply(this, c.slice(0,2)); // i.e. colorMode(c[0], c[1])
-        fill.apply(this, c.slice(-3));       // i.e. fill(c[2], c[3], c[4])
+        fill.apply(this, c.slice(2));       // i.e. fill(c[2], c[3], c[4])
         
         rect(left, r.top, block_width, r.height);
         left += block_width + space;
@@ -299,7 +300,7 @@ void storeColors(layers)
     {
         var c = getColor(layers[i]);
         colorMode.apply(this, c.slice(0,2));
-        stroke.apply(this, c.slice(-3));
+        stroke.apply(this, c.slice(2));
         point(width-1, i);
     }
     popStyle();
@@ -315,6 +316,7 @@ void drawHover(Rect r)
     rect(r.left, r.top, r.width, r.height + r.height/4);// descenders
     
     var h = getLayerHover();
+    console.log('drawHover', h);
     if (0 <= h)
     {
         var i = Math.floor(LAYERS[h].size.length * mouseX / width);
@@ -322,7 +324,7 @@ void drawHover(Rect r)
         fill(SETTINGS.colors.neutral);
         textFont("Arial", r.height);
         var hover_text = LAYERS[h].name + ': ' + val;
-        console.log(hover_text, "index", i, LAYERS[h].size[i]);
+        //console.log(hover_text, "index", i, LAYERS[h].size[i]);
         text(hover_text, r.left+1, r.top + r.height / 4, r.width, r.height);
     }
     popStyle();
@@ -381,8 +383,8 @@ int getLayerHover()
 {
     try
     {
-        for (var i = 0; i < LAYERS.length; i++)
-            if (LAYERS[i].hover)
+        for (var i = 0; i < SETTINGS.layer_colors.length; i++)
+            if (alpha(SETTINGS.layer_colors[i]) != 255)
                 return i;
     } catch(e){} // if LAYERS or hover not set, don't die.
     
@@ -392,18 +394,34 @@ int getLayerHover()
 
 void mouseMoved()
 {
+    color prev = get(pmouseX, pmouseY);
     color hit = get(mouseX, mouseY);
     
-    var was_hovering = getLayerHover() != -1;
+    var was_hovering = prev != SETTINGS.colors.background;
     
-    for (var i = 0; i < SETTINGS.layer_colors.length; i++)
-        LAYERS[i].hover = (SETTINGS.layer_colors[i] == hit);
-    
-    var is_hovering = getLayerHover() != -1;
+    var is_hovering = hit != SETTINGS.colors.background;
     
     if (is_hovering != was_hovering || is_hovering)
     {
-        REDRAW_REGION = RedrawRegions.hover;
+        if (prev != hit)
+        {
+            // TODO: this needs some cleanup. OLD HOVER CODE NOW BROKEN.
+            var hover = -1;
+            var s = SETTINGS.layer_colors;
+            for (var i = 0; i < s.length; i++)
+                if (red(s[i]) == red(hit) && green(s[i]) == green(hit) && blue(s[i]) == blue(hit) )
+                    hover = i;
+            
+            console.log(hover);
+            
+            for (int i = 0; i < SETTINGS.layer_colors.length; i++)
+            {
+                color c = SETTINGS.layer_colors[i];
+                var a = (i == hover) ? 128 : 255
+                SETTINGS.layer_colors[i] = color(red(c), green(c), blue(c), a);
+            }
+        }
+        REDRAW_REGION = prev != hit ? RedrawRegions.all : RedrawRegions.hover;
         redraw();
     }
 }
