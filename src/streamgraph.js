@@ -33,8 +33,10 @@ function Layer(name, size)
         if (0 < i)
             this.volatility = Math.max(this.volatility, Math.abs(size[i] - size[i-1]));
     }
+    // If we didn't set the end, we only had one data point. So, set it now.
+    // Also, might consider moving onset up one, so that we have 3 data points to draw a curve. 
     if (this.end == -1)
-        this.end = this.onset+1;
+        this.end = this.onset + 1;//this.onset = this.onset == 0 ? 0 : this.onset - 1;
 }
 
 // Expect data to be a 2D array.
