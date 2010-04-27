@@ -1,5 +1,4 @@
 FEATURES:
-    Fixed colors        PUNT (can't seed Math.Random)    
     Title               PUNT (can't center without some text knowledge)
     Save PNG            PUNT (save not currently implemented in 0.8)
     Data

@@ -1,7 +1,12 @@
 /* GLOBALS :( */
 var SETTINGS = new Settings();
 var LAYERS = null;
-var RedrawRegions = {}; RedrawRegions.all = 0; RedrawRegions.hover = 1; RedrawRegions.zoom = 2;// enum
+var RedrawRegions = {};// enum 
+RedrawRegions.all = 0;
+RedrawRegions.hover = 1;
+RedrawRegions.zoom = 2;
+RedrawRegions.color = 3;
+
 var REDRAW_REGION = RedrawRegions.all;
 
 
@@ -78,8 +83,17 @@ void draw()
     var layer_layout = SETTINGS.get('Layout');
     layer_layout(layers);
     
-    var color_picker = SETTINGS.get('ColorPicker');
-    color_picker(layers, SETTINGS.LastFmColors);
+    // Don't change colors when redrawing unless we were told to.
+    if (REDRAW_REGION != RedrawRegions.color && 0 < SETTINGS.layer_colors.length) 
+    {
+        for (int i= 0; i < layers.length; i++)
+            layers[i].rgb = SETTINGS.layer_colors[i];
+    }
+    else
+    {
+        var color_picker = SETTINGS.get('ColorPicker');
+        color_picker(layers, SETTINGS.LastFmColors);
+    }
     
     // Just because we have all this space, doesn't mean we should use it all.
     // The graphs tend to look better when they are wider than they are long.
@@ -353,7 +367,7 @@ void mouseClicked()
                 {
                     console.log("Changed settings", setting.current, " to ", setting.values[j]);
                     setting.current = setting.values[j];
-                    REDRAW_REGION = RedrawRegions.all;
+                    REDRAW_REGION = (setting.kind == "ColorPicker") ? RedrawRegions.color : RedrawRegions.all;
                     redraw();
                     break dance; // see?
                 }
