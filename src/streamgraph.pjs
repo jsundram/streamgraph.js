@@ -316,7 +316,6 @@ void drawHover(Rect r)
     rect(r.left, r.top, r.width, r.height + r.height/4);// descenders
     
     var h = getLayerHover();
-    console.log('drawHover', h);
     if (0 <= h)
     {
         var i = Math.floor(LAYERS[h].size.length * mouseX / width);
@@ -324,7 +323,6 @@ void drawHover(Rect r)
         fill(SETTINGS.colors.neutral);
         textFont("Arial", r.height);
         var hover_text = LAYERS[h].name + ': ' + val;
-        //console.log(hover_text, "index", i, LAYERS[h].size[i]);
         text(hover_text, r.left+1, r.top + r.height / 4, r.width, r.height);
     }
     popStyle();
@@ -384,7 +382,7 @@ int getLayerHover()
     try
     {
         for (var i = 0; i < SETTINGS.layer_colors.length; i++)
-            if (alpha(SETTINGS.layer_colors[i]) != 255)
+            if (alpha(SETTINGS.layer_colors[i]) == 128)
                 return i;
     } catch(e){} // if LAYERS or hover not set, don't die.
     
@@ -397,22 +395,18 @@ void mouseMoved()
     color prev = get(pmouseX, pmouseY);
     color hit = get(mouseX, mouseY);
     
-    var was_hovering = prev != SETTINGS.colors.background;
-    
-    var is_hovering = hit != SETTINGS.colors.background;
+    var was_hovering = prev != color(SETTINGS.colors.background);
+    var is_hovering = hit != color(SETTINGS.colors.background);
     
     if (is_hovering != was_hovering || is_hovering)
     {
-        if (prev != hit)
+        if (prev != hit) // Update highlighted layer.
         {
-            // TODO: this needs some cleanup. OLD HOVER CODE NOW BROKEN.
             var hover = -1;
             var s = SETTINGS.layer_colors;
             for (var i = 0; i < s.length; i++)
                 if (red(s[i]) == red(hit) && green(s[i]) == green(hit) && blue(s[i]) == blue(hit) )
                     hover = i;
-            
-            console.log(hover);
             
             for (int i = 0; i < SETTINGS.layer_colors.length; i++)
             {
@@ -420,8 +414,11 @@ void mouseMoved()
                 var a = (i == hover) ? 128 : 255
                 SETTINGS.layer_colors[i] = color(red(c), green(c), blue(c), a);
             }
+            REDRAW_REGION = RedrawRegions.all;
         }
-        REDRAW_REGION = prev != hit ? RedrawRegions.all : RedrawRegions.hover;
+        else // update text 
+            REDRAW_REGION = RedrawRegions.hover;
+        
         redraw();
     }
 }
