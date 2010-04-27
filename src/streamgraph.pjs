@@ -1,7 +1,7 @@
 /* GLOBALS :( */
 var SETTINGS = new Settings();
 var LAYERS = null;
-var RedrawRegions = {}; RedrawRegions.all = 0; RedrawRegions.hover = 1; // enum
+var RedrawRegions = {}; RedrawRegions.all = 0; RedrawRegions.hover = 1; RedrawRegions.zoom = 2;// enum
 var REDRAW_REGION = RedrawRegions.all;
 
 
@@ -12,6 +12,8 @@ void setup()
     SETTINGS.LastFmColors = loadImage('../deps/layers-nyt', 'jpg');
     SETTINGS.bounds = null;
     SETTINGS.layer_colors = [];
+    SETTINGS.start = 0;
+    SETTINGS.end = -1;
     
     background(SETTINGS.colors.background);
     smooth();
@@ -55,11 +57,19 @@ void draw()
         return;
     }
     
+    if (REDRAW_REGION == RedrawRegions.zoom)
+    {
+        drawZoom(legend_bottom);
+        return;
+    }
+    
     /* Import data Dataset*/
     var raw_data = getStreamgraphData();
     var data_labels = getStreamgraphLabels();
     var data = new DataSource(raw_data, data_labels);
     var layers = data.make(data_labels.length, raw_data.length);
+    if (SETTINGS.end == -1)
+        SETTINGS.end = raw_data.length;
     
     /* Calculate */
     var layer_sort = SETTINGS.get('Sort');
@@ -92,16 +102,15 @@ void draw()
     SETTINGS.layer_colors = storeColors(layers);
     LAYERS = layers;
     console.log("total time to draw: ", millis() - m);
-    console.log("showing ", computeLayerSize(raw_data.length), "out of ", raw_data.length, "points")
 }
 
 
 void scaleLayers(Layer[] layers, int screenTop, int screenBottom) 
 {
     // Figure out max and min values of layers.
-    float lmin = layers[0].yTop[0];
-    float lmax = layers[0].yBottom[0];
-    for (int i = 0; i < layers[0].size.length; i++)
+    float lmin = layers[0].yTop[SETTINGS.start];
+    float lmax = layers[0].yBottom[SETTINGS.start];
+    for (int i = SETTINGS.start; i < SETTINGS.end; i++)
     {
         for (int j = 0; j < layers.length; j++)
         {
@@ -111,7 +120,7 @@ void scaleLayers(Layer[] layers, int screenTop, int screenBottom)
     }
     
     float scale = (screenBottom - screenTop) / (lmax - lmin);
-    for (int i = 0; i < layers[0].size.length; i++)
+    for (int i = SETTINGS.start; i < SETTINGS.end; i++)
     {
         for (int j = 0; j < layers.length; j++)
         {
@@ -125,8 +134,7 @@ void scaleLayers(Layer[] layers, int screenTop, int screenBottom)
 void drawLayers(Layers[] layers, boolean isGraphCurved)
 {
     int n = layers.length;
-    int m = layers[0].size.length;
-    int lastIndex = m - 1;
+    int m = SETTINGS.end;
     int lastLayer = n - 1;
     
     background(SETTINGS.colors.background);
@@ -137,7 +145,7 @@ void drawLayers(Layers[] layers, boolean isGraphCurved)
     for (int i = 0; i < n; i++) 
     {
         Layer layer = layers[i];
-        int start = max(0, layer.onset - 1);
+        int start = max(SETTINGS.start, layer.onset - 1);
         int end   = min(m - 1, layer.end);
         boolean pxl = (i == lastLayer);
         
@@ -171,8 +179,7 @@ void drawLayers(Layers[] layers, boolean isGraphCurved)
 
 void graphVertex(int point, float[] source, boolean curve, boolean pxl)
 {
-    var layerSize = source.length; // This could be a lot of points.
-    float x = map(point, 0, layerSize - 1, 0, width);
+    float x = map(point, SETTINGS.start, SETTINGS.end-1, 0, width);
     float y = source[point] - (pxl ? 1 : 0);
     if (curve)
         curveVertex(x, y);
@@ -308,6 +315,25 @@ void drawHover(Rect r)
 }
 
 
+void drawZoom(int top)
+{
+    var s, w;
+    if (startX)
+    {
+        s = min(startX, mouseX);
+        w = Math.abs(mouseX - startX);
+        fill(SETTINGS.colors.highlight);
+    }
+    else
+    {
+        s = 0;
+        w = width;
+        fill(SETTINGS.colors.background);
+    }
+    rect(s, top, w, 10);
+}
+
+
 void mouseClicked()
 {
     console.log('Click', mouseX, mouseY);
@@ -369,3 +395,62 @@ void mouseMoved()
 }
 
 
+/* Zoom stuff */
+// TODO: Multiple zoom doesn't work.
+var startX = null;
+var DRAGGED = false;
+// Zoom and Seek
+void keyPressed()
+{
+    if (key == ESC)
+    {
+        // Update settings and redraw (if necessary)
+        console.log('got ESC');
+        SETTINGS.start = 0;
+        SETTINGS.end = -1;
+        REDRAW_REGION = RedrawRegions.all;
+        redraw();
+    }
+}
+
+void mousePressed()
+{
+    console.log('Press', mouseX, mouseY);
+    startX = mouseX;
+}
+
+void mouseDragged()
+{
+    DRAGGED = true;
+    REDRAW_REGION = RedrawRegions.zoom;
+    redraw();
+}
+
+void mouseReleased()
+{
+    console.log('Dragged from', startX, ' to ', mouseX);
+    if (DRAGGED)
+    {
+        var x1 = min(mouseX, startX);
+        var x2 = max(mouseX, startX);
+        
+        // figure out where to zoom
+        var s = Math.floor(SETTINGS.start + (x1 / width) * (SETTINGS.end - SETTINGS.start));
+        var e = Math.ceil(SETTINGS.start + (x2 / width) * (SETTINGS.end - SETTINGS.start));
+        if (3 < e - s)
+        {
+            SETTINGS.start = s; 
+            SETTINGS.end = e;
+            console.log('drawing from', SETTINGS.start, 'to', SETTINGS.end);
+            REDRAW_REGION = RedrawRegions.all;
+            redraw();
+        }
+        else
+        {
+            startX = null;
+            REDRAW_REGION = RedrawRegions.zoom;
+            redraw(); // kill the rect.
+        }
+    }
+    DRAGGED = false;
+}

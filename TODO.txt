@@ -2,7 +2,10 @@ FEATURES:
     Fixed colors        PUNT (can't seed Math.Random)    
     Title               PUNT (can't center without some text knowledge)
     Save PNG            PUNT (save not currently implemented in 0.8)
-    Zoom                PUNT
+    Data
+        don't require it to be aligned (do the alignment)
+        x-labels
+    Highlight           PUNT (Need fixed colors first)
     
 BUGS:
     Chrome on Mac ...   PUNT (hopefully this will eventually get fixed in processing/chrome?)
@@ -20,6 +23,7 @@ BEFORE PUBLICATION:
         Glenn Gould Aria
     2) EN Hotttnesss
         boring (5, 25, 1000)
+            Try 20 artists for 24 weeks, include 0s.
     3) Stream data, LTER, 
         http://sbc.lternet.edu/external/Land/Data/Stream_Chemistry/stream_chemistry_allyears.txt
         site_code,  Pick two sites (FK01 - Franklin Creek, CA; AH01 - Arroyo Hondo, CA)
