@@ -5,6 +5,11 @@ The paper "Stacked Graphs -- Geometry & Aesthetics" by Byron &  Wattenberg is us
 
 Onsets are just where data is first > 0. 
 
-blah blah
+
+Other implementations
+    echonest.streamgraphing.org
+    that matlab one.
+    http://bytebucket.org/marcos/pystreamgraph/src/tip/pystreamgraph.py
+
 
 Jason
