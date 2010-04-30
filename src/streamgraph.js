@@ -1,4 +1,4 @@
-// Port of Lee Byron's streamgraph_generator to javascript 
+// Port of Lee Byron and Martin Wattenberg's streamgraph_generator to javascript.
 //  http://github.com/leebyron/streamgraph_generator
 // Basically to make a streamgraph, you need Data, a Sort Order, a Layout, and Colors
 
@@ -298,7 +298,7 @@ function LastFmColorPicker(layers, source)
     {
         if (x < start)
             return start;
-        if (end < x)
+        if (end <= x)
             return end-1;
         return x;
     }
@@ -314,9 +314,11 @@ function LastFmColorPicker(layers, source)
     for (var i = 0; i < layers.length; i++)
     {
         var layer = layers[i];
+        
         var normalizedOnset = layer.onset / layer.size.length;
         var normalizedSum = layer.sum / maxSum;
         var shapedSum = 1.0 - Math.sqrt(normalizedSum);
+        
         if (non_zero_offsets)
             layer.rgb = get(normalizedOnset, shapedSum);
         else
