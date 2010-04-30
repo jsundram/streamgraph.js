@@ -276,6 +276,7 @@ Array getColor(layer)
     catch(e)
     {
         // This will happen if the initial color set is set to LastFmColors, and the image hasn't finished loading yet
+        return [RGB, 255, SETTINGS.colors.background];
     }
     
     return [RGB, 255].concat(layer.rgb);
