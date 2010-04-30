@@ -1,6 +1,11 @@
 /* GLOBALS :( */
 var SETTINGS = new Settings();
 var LAYERS = null;
+
+/* Import data Dataset*/
+var RAW_DATA = getStreamgraphData();
+var DATA_LABELS = getStreamgraphLabels();
+
 var RedrawRegions = {};// enum 
 RedrawRegions.all = 0;
 RedrawRegions.hover = 1;
@@ -50,12 +55,13 @@ void draw()
     var text_height = 20;
     var settings_top = SETTINGS.show_settings ? height - text_height : height;
     var legend_bottom = SETTINGS.show_legend ? text_height : 0;
+    var legend_right = SETTINGS.show_legend ? width - 175 : 0;
     SETTINGS.bounds = new Rect(0, settings_top, width, text_height);
     
     /* Deal with mouse hover stuff */
     // Would like to size this rect so that we know it can fit whatever text it has to.
     // but there is no way to measure text in processing.js yet.
-    var hover = new Rect(width - 175, 2, 175, text_height*.75);
+    var hover = new Rect(legend_right, 2, width - legend_right, text_height*.75);
     if (REDRAW_REGION == RedrawRegions.hover)
     {
         drawHover(hover);
@@ -68,13 +74,10 @@ void draw()
         return;
     }
     
-    /* Import data Dataset*/
-    var raw_data = getStreamgraphData();
-    var data_labels = getStreamgraphLabels();
-    var data = new DataSource(raw_data, data_labels);
-    var layers = data.make(data_labels.length, raw_data.length);
+    var data = new DataSource(RAW_DATA, DATA_LABELS);
+    var layers = data.make(DATA_LABELS.length, RAW_DATA.length);
     if (SETTINGS.end == -1)
-        SETTINGS.end = raw_data.length;
+        SETTINGS.end = RAW_DATA.length;
     
     /* Calculate */
     var layer_sort = SETTINGS.get('Sort');
@@ -108,7 +111,7 @@ void draw()
     var curve = SETTINGS.get('Curve');
     drawLayers(layers, curve());
     if (SETTINGS.show_legend)
-        drawLegend(new Rect(0, 0, width - hover.width, legend_bottom), layers);
+        drawLegend(new Rect(0, 0, legend_right, legend_bottom), layers);
     if (SETTINGS.show_settings)
         drawSettings(SETTINGS.bounds);
     
@@ -253,7 +256,7 @@ Array getColor(layer)
     // assume some variety of rgb
     if (4 < layer.rgb.length) // rgba (image.pixels returns this)
         layer.rgb = rgbaToInt(layer.rgb);
-        
+    
     if (typeof(layer.rgb) == 'number')
         return [RGB, 255, red(layer.rgb), green(layer.rgb), blue(layer.rgb), alpha(layer.rgb)];
     
@@ -319,10 +322,11 @@ void drawHover(Rect r)
     if (0 <= h)
     {
         var i = Math.floor(LAYERS[h].size.length * mouseX / width);
-        var val = LAYERS[h].size[i] + 0.00;
+        var val = LAYERS[h].size[i]; 
         fill(SETTINGS.colors.neutral);
         textFont("Arial", r.height);
-        var hover_text = LAYERS[h].name + ': ' + val;
+        // add .00001 to make sure this shows up as a float (i.e. that nf succeeds.)
+        var hover_text = LAYERS[h].name + ' (' + nf(i, 2) + ') ' + ': ' + nf(val + 0.00001, 2, 3);
         text(hover_text, r.left+1, r.top + r.height / 4, r.width, r.height);
     }
     popStyle();
@@ -398,6 +402,21 @@ void mouseMoved()
     var was_hovering = prev != color(SETTINGS.colors.background);
     var is_hovering = hit != color(SETTINGS.colors.background);
     
+    function hitTest(i)
+    {
+        // Check mouse position to make sure it could be over this region.
+        // Note: this is purposely loose.
+        var x = SETTINGS.start + (mouseX / width) * (SETTINGS.end - SETTINGS.start);
+        var withinX = LAYERS[i].onset <= x && x <= LAYERS[i].end;
+        
+        x = Math.floor(x);
+        var bottom = i == 0 ? LAYERS[i].yBottom[x] : LAYERS[i-1].yTop[x];
+        var top = i == LAYERS.length-1 ? LAYERS[i].yTop[x] : LAYERS[i + 1].yBottom[x];
+        var withinY = top < mouseY && mouseY < bottom;
+        
+        return withinX && withinY;
+    }
+    
     if (is_hovering != was_hovering || is_hovering)
     {
         if (prev != hit) // Update highlighted layer.
@@ -405,8 +424,13 @@ void mouseMoved()
             var hover = -1;
             var s = SETTINGS.layer_colors;
             for (var i = 0; i < s.length; i++)
-                if (red(s[i]) == red(hit) && green(s[i]) == green(hit) && blue(s[i]) == blue(hit) )
+            {   
+                // hitTest is necessary since colors could be duplicated.
+                var within = hitTest(i);
+                // ok, now check colors
+                if (red(s[i]) == red(hit) && green(s[i]) == green(hit) && blue(s[i]) == blue(hit) && within)
                     hover = i;
+            }
             
             for (int i = 0; i < SETTINGS.layer_colors.length; i++)
             {
