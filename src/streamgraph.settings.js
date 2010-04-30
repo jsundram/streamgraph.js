@@ -32,7 +32,7 @@ function Settings()
     this.colors.neutral = 200;
     this.colors.highlight = 255;
     
-    this.show_settings = false;
+    this.show_settings = true;
     this.show_legend = true;
 }
 
