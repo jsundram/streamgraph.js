@@ -1,5 +1,16 @@
 /* GLOBALS :( */
-var SETTINGS = new Settings();
+// See if the user provided some settings for us:
+var SETTINGS = null;
+try
+{
+    SETTINGS = getStreamgraphSettings();
+}
+catch(e)
+{
+    console.log(e);
+    SETTINGS = new Settings();
+}
+
 var LAYERS = null;
 
 /* Import data Dataset*/
@@ -19,7 +30,7 @@ void setup()
 {
     size(window.innerWidth, window.innerHeight);
     
-    SETTINGS.LastFmColors = loadImage('../deps/layers-nyt', 'jpg');
+    SETTINGS.LastFmColors = loadImage('../deps/layers-nyt', 'jpg', function(){console.log("image loaded"); REDRAW_REGION = RedrawRegions.color; redraw();});
     SETTINGS.bounds = null;
     SETTINGS.layer_colors = [];
     SETTINGS.start = 0;
@@ -254,11 +265,18 @@ Array getColor(layer)
         return [HSB, 1.0].concat(layer.hsb);
     
     // assume some variety of rgb
-    if (4 < layer.rgb.length) // rgba (image.pixels returns this)
-        layer.rgb = rgbaToInt(layer.rgb);
-    
-    if (typeof(layer.rgb) == 'number')
-        return [RGB, 255, red(layer.rgb), green(layer.rgb), blue(layer.rgb), alpha(layer.rgb)];
+    try
+    {
+        if (4 < layer.rgb.length) // rgba (image.pixels returns this)
+            layer.rgb = rgbaToInt(layer.rgb);
+        
+        if (typeof(layer.rgb) == 'number')
+            return [RGB, 255, red(layer.rgb), green(layer.rgb), blue(layer.rgb), alpha(layer.rgb)];
+    }
+    catch(e)
+    {
+        // This will happen if the initial color set is set to LastFmColors, and the image hasn't finished loading yet
+    }
     
     return [RGB, 255].concat(layer.rgb);
 }
