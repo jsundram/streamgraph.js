@@ -1,3 +1,4 @@
+// By Jason Sundram 5/2010, based on Byron & Wattenberg's Streamgraph Generator.
 var numLayers = 50;
 var layerSize = 100;
 

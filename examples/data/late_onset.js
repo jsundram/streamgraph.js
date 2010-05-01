@@ -1,3 +1,4 @@
+// By Jason Sundram 5/2010, based on Byron & Wattenberg's Streamgraph Generator.
 var numLayers = 50;
 var layerSize = 100;
 
@@ -5,7 +6,7 @@ function getStreamgraphSettings()
 {
     var s = new Settings();
     s.colors.background = 200;
-    s.colors.neutral = 128;
+    s.colors.neutral = 100;
     s.colors.highlight = 0;
     
     s.show_settings = true;

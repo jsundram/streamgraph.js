@@ -1,3 +1,5 @@
+// By Jason Sundram 5/2010.
+
 // These are a bit of a hack to make the Curved stuff work with settings.
 function CurvedCurve() { return true;}
 function JaggedCurve() { return false;}

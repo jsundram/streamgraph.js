@@ -1,3 +1,4 @@
+// By Jason Sundram 5/2010.
 function Rect(l, t, w, h) 
 {
     this.left = l;

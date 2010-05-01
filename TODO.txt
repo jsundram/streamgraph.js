@@ -1,3 +1,5 @@
+This document lists some things that might be done to improve this project.
+
 FEATURES:
     Title               PUNT (can't center without some text knowledge)
     Save PNG            PUNT (save not currently implemented in 0.8)
@@ -14,9 +16,4 @@ CODE REVIEW CHANGES:
     Globals?
     Stop passing lastFmColors all the time.
 
-EXAMPLES:
-    1) Late Onset
-    2) Believable
-    3) EN Audio 
-    4) last.fm history
-    Need non-sparse data.
+MORE EXAMPLES!

@@ -1,18 +1,50 @@
-/*
-    Pitch data from the echonest. Produced as follows:
-    from echonest import cloud
-    t = cloud.find_track('glenn gould', 'aria')
-    print 'return ['
-    for s in t.analysis.segments: print '[%s],' % ', '.join('%2.3f' % p for p in s.pitches)
-    print '];'
-*/
+// By Jason Sundram 5/2010.
+
+function getStreamgraphSettings()
+{
+    var s = new Settings();
+    s.show_settings = true;
+    s.show_legend = true;
+    
+    // Add the PitchColorPicker function defined below.
+    s.ColorPicker.values.push("Pitch");
+    s.ColorPicker.current = "Pitch";
+    return s;
+}
+
+function PitchColorPicker(layers)
+{
+    // Rainbow. This is way too much color, just done to show how.
+    var colors = [-13631744, -6226176, -7424, -42496, -65536, -65536, -5832704, -10354507, -12386062, -16776961, -16743169, -16711720];
+    var pitches = getStreamgraphLabels();
+    var color_map = {};
+    for (var i = 0; i < colors.length; i++)
+        color_map[pitches[i]] = colors[i];
+    
+    for (var i = 0; i < layers.length; i++)
+    {
+        layers[i].rgb = color_map[layers[i].name];
+    }
+}
+
 function getStreamgraphLabels()
 {
     return ["C", "C♯", "D", "E♭", "E", "F", "F♯", "G", "A♭", "A", "B♭", "B"];
 }
 
 function getStreamgraphData()
-{
+{    
+    /*
+    The following is pitch data from The Echo Nest, via echo-nest-remix:
+        http://code.google.com/p/echo-nest-remix/
+    It was produced by the following python code:
+        from echonest import cloud
+        t = cloud.find_track('glenn gould', 'aria')
+        print 'return ['
+        for s in t.analysis.segments: print '[%s],' % ', '.join('%2.3f' % p for p in s.pitches)
+        print '];'
+    */
+    
     return [
     [0.319, 0.439, 1.000, 0.282, 0.253, 0.114, 0.092, 0.066, 0.085, 0.086, 0.210, 0.162],
     [1.000, 0.402, 0.388, 0.379, 0.140, 0.162, 0.184, 0.192, 0.374, 0.368, 0.353, 0.069],

@@ -1,6 +1,9 @@
+// By Jason Sundram 5/2010, based on Byron & Wattenberg's Streamgraph Generator.
+
 /* GLOBALS :( */
-// See if the user provided some settings for us:
+
 var SETTINGS = null;
+// See if the user provided some settings for us:
 try
 {
     SETTINGS = getStreamgraphSettings();
@@ -182,17 +185,17 @@ void drawLayers(Layers[] layers, boolean isGraphCurved)
         colorMode.apply(this, c.slice(0,2)); // i.e. colorMode(c[0], c[1])
         fill.apply(this, c.slice(2));       // i.e. fill(c[2], c[3], c[4])
         
-        // Draw shape
+        // Draw shape.
         beginShape();
         
-        // Draw top edge, left to right
+        // Draw top edge, left to right.
         graphVertex(start, layer.yTop, isGraphCurved, pxl);
         for (int j = start; j <= end; j++)
             graphVertex(j, layer.yTop, isGraphCurved, pxl);
         
         graphVertex(end, layer.yTop, isGraphCurved, pxl);
         
-        // Draw bottom edge, right to left
+        // Draw bottom edge, right to left.
         graphVertex(end, layer.yBottom, isGraphCurved, false);
         for (int j = end; j >= start; j--)
             graphVertex(j, layer.yBottom, isGraphCurved, false);
@@ -219,7 +222,7 @@ void graphVertex(int point, float[] source, boolean curve, boolean pxl)
 
 void drawSettings(r)
 {
-    var spacing = 10; // space between setting groups
+    var spacing = 10; // Space between setting groups.
     var text_left = r.left;
     var text_width = (r.width - spacing * (SETTINGS.num_types() - 1)) / SETTINGS.num_options();
     var text_height = r.height * .75;
@@ -264,7 +267,7 @@ Array getColor(layer)
     if (layer.hasOwnProperty('hsb'))
         return [HSB, 1.0].concat(layer.hsb);
     
-    // assume some variety of rgb
+    // Assume some variety of rgb.
     try
     {
         if (4 < layer.rgb.length) // rgba (image.pixels returns this)
@@ -275,7 +278,8 @@ Array getColor(layer)
     }
     catch(e)
     {
-        // This will happen if the initial color set is set to LastFmColors, and the image hasn't finished loading yet
+        // This will happen if the initial color set is set to 
+        // LastFmColors, and the image hasn't finished loading yet.
         return [RGB, 255, SETTINGS.colors.background];
     }
     
@@ -373,8 +377,6 @@ void drawZoom(int top)
 
 void mouseClicked()
 {
-    console.log('Click', mouseX, mouseY);
-    
     // Did we click the settings?
     if (SETTINGS.bounds !== null && SETTINGS.bounds.contains(mouseX, mouseY))
     {
@@ -444,10 +446,13 @@ void mouseMoved()
             var s = SETTINGS.layer_colors;
             for (var i = 0; i < s.length; i++)
             {   
+                // Check by colors
+                var colorMatch = red(s[i]) == red(hit) && green(s[i]) == green(hit) && blue(s[i]) == blue(hit);
+                
                 // hitTest is necessary since colors could be duplicated.
                 var within = hitTest(i);
-                // ok, now check colors
-                if (red(s[i]) == red(hit) && green(s[i]) == green(hit) && blue(s[i]) == blue(hit) && within)
+                
+                if (colorMatch && within)
                     hover = i;
             }
             
@@ -468,16 +473,14 @@ void mouseMoved()
 
 
 /* Zoom stuff */
-// TODO: Multiple zoom doesn't work.
 var startX = null;
 var DRAGGED = false;
-// Zoom and Seek
+
 void keyPressed()
 {
     if (key == ESC)
     {
         // Update settings and redraw (if necessary)
-        console.log('got ESC');
         SETTINGS.start = 0;
         SETTINGS.end = -1;
         REDRAW_REGION = RedrawRegions.all;
@@ -487,7 +490,6 @@ void keyPressed()
 
 void mousePressed()
 {
-    console.log('Press', mouseX, mouseY);
     startX = mouseX;
 }
 
@@ -500,13 +502,12 @@ void mouseDragged()
 
 void mouseReleased()
 {
-    console.log('Dragged from', startX, ' to ', mouseX);
     if (DRAGGED)
     {
         var x1 = min(mouseX, startX);
         var x2 = max(mouseX, startX);
         
-        // figure out where to zoom
+        // Figure out where to zoom.
         var s = Math.floor(SETTINGS.start + (x1 / width) * (SETTINGS.end - SETTINGS.start));
         var e = Math.ceil(SETTINGS.start + (x2 / width) * (SETTINGS.end - SETTINGS.start));
         if (3 < e - s)

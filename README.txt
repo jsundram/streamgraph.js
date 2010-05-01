@@ -1,15 +1,10 @@
-Streamgraph.js is a port of Lee Byron and Martin Wattenberg's streamgraph_generator to javascript.
-Here's the original project: http://github.com/leebyron/streamgraph_generator
+Streamgraph.js is a port of Lee Byron and Martin Wattenberg's streamgraph_generator (http://github.com/leebyron/streamgraph_generator) to javascript and processing.js. The paper "Stacked Graphs -- Geometry & Aesthetics" by Byron &  Wattenberg is useful to consult.
 
-The paper "Stacked Graphs -- Geometry & Aesthetics" by Byron &  Wattenberg is useful to consult.
-
-Onsets are just where data is first > 0. 
-
-
-Other implementations
-    echonest.streamgraphing.org
-    that matlab one.
-    http://bytebucket.org/marcos/pystreamgraph/src/tip/pystreamgraph.py
-
-
-Jason
+I've added the following features (which can be turned off or ignored):
+ * Dynamic Sizing
+ * Legend
+ * Settings (Dynamically changeable Layout, Colors, etc.)
+ * Zoom (Drag to select an area, ESC to zoom out)
+ * Hover (Highlights the layer under the mouse, presents the layer name and relevant data at the top of the screen)
+ * New Color Option, NiceRandom (a bit more variation)
+ * A real example (showing how to use).

@@ -1,11 +1,9 @@
-// Port of Lee Byron and Martin Wattenberg's streamgraph_generator to javascript.
-//  http://github.com/leebyron/streamgraph_generator
-// Basically to make a streamgraph, you need Data, a Sort Order, a Layout, and Colors
+// By Jason Sundram 5/2010, based on Byron & Wattenberg's Streamgraph Generator.
+// To make a streamgraph, you need: Data, a Sort Order, a Layout, and Colors.
 
 
 /* DATA */
 
-// haven't dealt with: yBottom, yTop, rgb. They get assigned by Layout and Color code.
 function Layer(name, size)
 {
     for (var i = 0; i < size.length; i++)
