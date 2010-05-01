@@ -1,58 +1,22 @@
 FEATURES:
     Title               PUNT (can't center without some text knowledge)
     Save PNG            PUNT (save not currently implemented in 0.8)
-    Data
-        don't require it to be aligned (do the alignment)
-        x-labels
-    Change Settings
-        don't make users edit streamgraph.settings.js?
-        make an example with a custom colorizer.
-    Highlight           PUNT (Need fixed colors first)
-    
-BUGS:
+    Auto-align data     PUNT (overkill)
+    X-Labels            PUNT (Text align/measure not possible in processing v0.8)
+
+KNOWN BUGS:
     Chrome on Mac ...   PUNT (hopefully this will eventually get fixed in processing/chrome?)
     Non-Zero-looking data with hover text of 0. This is due to interpolation.
-    Sparse data (layers with very few points) doesn't get displayed nicely. (This is shared with the original implementation)
+    Layers with very few points don't get displayed nicely. This is shared with the original implementation.
 
-BEFORE PUBLICATION:
-    GET CODE REVIEWED.
-        Stop calling computeLayerSize from graphVertex.
-        Globals?
-        Stop passing lastFmColors all the time.
-    
-    Make 3 examples:
-        http://measuringmeasures.com/blog/2010/4/29/datasets-and-data-driven-startups.html
-    1) EN Audio
-        Glenn Gould Aria
-        cumulative pitch is boring.
-    2) EN Hotttnesss
-        resample
-        scale with logs
-    3) Stream data, LTER, 
-        http://sbc.lternet.edu/external/Land/Data/Stream_Chemistry/stream_chemistry_allyears.txt
-        site_code,  Pick two sites (FK01 - Franklin Creek, CA; AH01 - Arroyo Hondo, CA)
-        timestamp_local, (more dense sampling when there is a storm, try to get same storm.)
-        nh4_uM, Ammonia
-        no3_uM, Nitrate 
-        po4_uM, SKIP
-        tdn_uM, Total Dissolved Nitrogen (Subtract Ammonia and Nitrate, what's left will be Other: "Organic Nitrogen")
-        tdp_uM, SKIP
-        tpc_uM, SKIP
-        tpn_uM, Interesting (if present, looks like all -999.0)
-        tpp_uM, SKIP
-        tss_mgperLiter, SKIP
-        spec_cond_uSpercm SKIP?
-        Look at just a storm. 
-            boring
-        Possibly also all 10 years.
+CODE REVIEW CHANGES:
+    Stop calling computeLayerSize from graphVertex.
+    Globals?
+    Stop passing lastFmColors all the time.
+
+EXAMPLES:
+    1) Late Onset
+    2) Believable
+    3) EN Audio 
     4) last.fm history
-        Need non-sparse data.
-    4) Git Hub data, Google Reader, Gov Data, Mortality Data
-
-    Write up the examples:
-    1) How to use
-    2) Pretty pictures.
-
-    Blog them somewhere
-    Running with Data?
-
+    Need non-sparse data.
