@@ -33,7 +33,8 @@ void setup()
 {
     size(window.innerWidth, window.innerHeight);
     
-    SETTINGS.LastFmColors = loadImage('../deps/layers-nyt', 'jpg', function(){console.log("image loaded"); REDRAW_REGION = RedrawRegions.color; redraw();});
+    var image_loaded = function(){console.log("image loaded"); REDRAW_REGION = RedrawRegions.color; redraw();}
+    SETTINGS.LastFmColors = loadImage(SETTINGS.colors.image, 'jpg', image_loaded);
     SETTINGS.bounds = null;
     SETTINGS.layer_colors = [];
     SETTINGS.start = 0;
