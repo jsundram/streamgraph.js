@@ -1,6 +1,15 @@
 // By Jason Sundram 5/2010, based on Byron & Wattenberg's Streamgraph Generator.
-var numLayers = 50;
+var numLayers = 25;
 var layerSize = 100;
+
+function getStreamgraphSettings()
+{
+    var s = new Settings();
+    s.show_settings = true;
+    s.show_legend = false;
+    s.Sort.current = "Volatility"; 
+    return s;
+}
 
 function getStreamgraphData()
 {
