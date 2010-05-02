@@ -11,3 +11,12 @@ I've added the following features (which can be turned off or ignored):
  
 Known issues:
  * The examples don't work locally using Chrome on Mac. 
+ 
+How to use:
+ Consult any of the examples. Basically, you need to:
+ * Create a javascript file that implements getStreamgraphData() and getStreamgraphLabels.
+ * Optionally, you can add getStreamgraphSettings() if you wish to modify the default settings.
+ * Your getStreamgraphData() needs to return a 2D array, where each column contains a series, and each row conains a time-slice.
+ * There should be the same number of labels as columns.
+ * Create an html file that includes processing.js, streamgraph.js, streamgraph.settings.js and your javascript file. 
+ * Place a canvas tag with its datasource set to streamgraph.pjs. Alternatively, use jquery, as described here: http://processingjs.org/source/ajax-init/index.html
