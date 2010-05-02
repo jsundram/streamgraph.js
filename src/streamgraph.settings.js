@@ -33,6 +33,7 @@ function Settings()
     this.colors.background = 0;
     this.colors.neutral = 200;
     this.colors.highlight = 255;
+    this.colors.image = "../deps/layers-nyt";
     
     this.show_settings = true;
     this.show_legend = true;
