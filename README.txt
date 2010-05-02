@@ -7,4 +7,8 @@ I've added the following features (which can be turned off or ignored):
  * Zoom (Drag to select an area, ESC to zoom out)
  * Hover (Highlights the layer under the mouse, presents the layer name and relevant data at the top of the screen)
  * New Color Option, NiceRandom (a bit more variation)
- * A real example (showing how to use).
+ * Real examples (showing how to use).
+ 
+ 
+Known issues:
+ * The examples don't work locally using Chrome on Mac. 
