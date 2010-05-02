@@ -79,7 +79,7 @@ void draw()
     var hover = new Rect(legend_right, 2, width - legend_right, text_height*.75);
     if (REDRAW_REGION == RedrawRegions.hover)
     {
-        drawHover(hover);
+        drawHoverText(hover);
         return;
     }
     
@@ -125,6 +125,7 @@ void draw()
     /* Draw */
     var curve = SETTINGS.get('Curve');
     drawLayers(layers, curve());
+    
     if (SETTINGS.show_legend)
         drawLegend(new Rect(0, 0, legend_right, legend_bottom), layers);
     if (SETTINGS.show_settings)
@@ -178,6 +179,7 @@ void drawLayers(Layers[] layers, boolean isGraphCurved)
     for (int i = 0; i < n; i++) 
     {
         Layer layer = layers[i];
+        
         int start = max(SETTINGS.start, layer.onset - 1);
         int end   = min(m - 1, layer.end);
         boolean pxl = (i == lastLayer);
@@ -335,7 +337,7 @@ void storeColors(layers)
 }
 
 
-void drawHover(Rect r)
+void drawHoverText(Rect r)
 {
     pushStyle();
     noStroke();
