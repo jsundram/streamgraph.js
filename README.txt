@@ -9,6 +9,5 @@ I've added the following features (which can be turned off or ignored):
  * New Color Option, NiceRandom (a bit more variation)
  * Real examples (showing how to use).
  
- 
 Known issues:
  * The examples don't work locally using Chrome on Mac. 
