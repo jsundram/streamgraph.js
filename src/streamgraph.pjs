@@ -325,15 +325,18 @@ void drawLegend(Rect r, Layers[] layers)
 void storeColors(layers)
 {
     pushStyle();
+    colors = [];
     for (var i = 0; i < layers.length; i++)
     {
         var c = getColor(layers[i]);
+        
         colorMode.apply(this, c.slice(0,2));
         stroke.apply(this, c.slice(2));
         point(width-1, i);
+        colors[i] = get(width-1, i);
     }
     popStyle();
-    return get(width-1, 0, 1, layers.length).pixels;
+    return colors;
 }
 
 
@@ -417,6 +420,20 @@ int getLayerHover()
     return -1;
 }
 
+boolean hitTest(i)
+{
+    // Check mouse position to make sure it could be over this region.
+    // Note: this is purposely loose.
+    var x = SETTINGS.start + (mouseX / width) * (SETTINGS.end - SETTINGS.start);
+    var withinX = LAYERS[i].onset <= x && x <= LAYERS[i].end;
+    
+    x = Math.floor(x);
+    var bottom = i == 0 ? LAYERS[i].yBottom[x] : LAYERS[i-1].yTop[x];
+    var top = i == LAYERS.length-1 ? LAYERS[i].yTop[x] : LAYERS[i + 1].yBottom[x];
+    var withinY = top < mouseY && mouseY < bottom;
+    
+    return withinX && withinY;
+}
 
 void mouseMoved()
 {
@@ -425,21 +442,6 @@ void mouseMoved()
     
     var was_hovering = prev != color(SETTINGS.colors.background);
     var is_hovering = hit != color(SETTINGS.colors.background);
-    
-    function hitTest(i)
-    {
-        // Check mouse position to make sure it could be over this region.
-        // Note: this is purposely loose.
-        var x = SETTINGS.start + (mouseX / width) * (SETTINGS.end - SETTINGS.start);
-        var withinX = LAYERS[i].onset <= x && x <= LAYERS[i].end;
-        
-        x = Math.floor(x);
-        var bottom = i == 0 ? LAYERS[i].yBottom[x] : LAYERS[i-1].yTop[x];
-        var top = i == LAYERS.length-1 ? LAYERS[i].yTop[x] : LAYERS[i + 1].yBottom[x];
-        var withinY = top < mouseY && mouseY < bottom;
-        
-        return withinX && withinY;
-    }
     
     if (is_hovering != was_hovering || is_hovering)
     {

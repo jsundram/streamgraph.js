@@ -2,6 +2,8 @@ This document lists some things that might be done to improve this project.
 
 FEATURES:
     Title               PUNT (can't center without some text knowledge)
+                        May now be possible in Processing.js 1.1.0, see
+                            http://processingjs.org/source/text-width/text-width.html
     Save PNG            PUNT (save not currently implemented in 0.8)
     Auto-align data     PUNT (overkill)
     X-Labels            PUNT (Text align/measure not possible in processing v0.8)

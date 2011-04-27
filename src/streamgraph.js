@@ -305,7 +305,7 @@ function LastFmColorPicker(layers, source)
     {
         var x = constrain(Math.floor(g1 * source.width), 0, source.width);
         var y = constrain(Math.floor(g2 * source.height), 0, source.height);
-        color = source.pixels[x + y * source.width];
+        color = source.get(x, y);
         return color;
     }
     
